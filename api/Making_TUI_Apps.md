@@ -578,57 +578,87 @@ Useful if you want a specific colour combo that the default `fg`/`bg` system doe
 
 ---
 
-## Testing Your App
+## Running Astralixi Commands
 
-Testing is simple — just run your `.py` file directly with Python. No special tools, no build step, nothing to install.
+Apps can run any Astralixi command directly through the `command` object. This works for every command that exists now and any commands added in the future — there's no hardcoded list inside the API.
 
-Make sure your folder looks like this:
+Import `command` alongside everything else:
 
-```
-my_app/
-├── astralixios_api.py   ← grab this from the AstralixiOS SDK
-└── my_app.py            ← your app
+```python
+from astralixios_api import App, draw_multiline, draw_status_bar, run, command
 ```
 
-Because `astralixios_api` is imported by name, Python needs to find it in the same directory as your app. As long as it's sitting right next to your `.py` file, it'll work. Then just run:
+### `command.run(command_string)`
 
-```
-python my_app.py
-```
+Runs a command and lets its output go straight to the terminal, exactly as if the user had typed it at the Astralixi prompt. Use this when you just want to do something and don't need to read the output in your app.
 
-That's it. You'll see your app running exactly as it would on-device. Test all your key bindings, make sure the layout doesn't break at different terminal sizes (try resizing your terminal window before running — remember, `app.cols` and `app.rows` are measured at startup), and verify that the exit shortcut is clearly visible.
-
-When you're done, do **NOT** include `astralixios_api.py` in your submission repo — the OS provides it automatically on-device.
-
-### Getting Your App onto AstralixiOS
-
-All `.axapp` files for AstralixiOS must be verified and compiled by Astroxia before they can be distributed or installed. There is no self-packaging or sideloading — this is intentional. Allowing anyone to freely compile and distribute `.axapp` bundles would create real security risks (malicious apps bypassing review) and decentralisation problems (unofficial app sources fragmenting the ecosystem). So the compilation and signing of `.axapp` bundles is handled entirely on Astroxia's end as part of the submission review process.
-
-To get your app into the official library, open a public GitHub repository with your app. It needs:
-
-```
-my_app/
-├── my_app.py     ← your app (single file only)
-├── README.md     ← what the app does and how to use it
-└── LICENSE       ← any open source licence you like
+```python
+command.run("mkdir notes")
+command.run("rm old_file.txt")
+command.run("cp src.txt dst.txt")
 ```
 
-Then fork the AstralixiOS App Library repo and open a pull request adding your app to the `submissions/` folder, with an entry in `submissions/index.json` for your app's name, description, and category. A maintainer will review it manually for:
+Arguments are passed in the string the same way you'd type them — just include them after the command name, separated by spaces.
 
-- TUI only — no GUI, no external windows
-- Python Standard Library only — no third-party packages
-- Uses `astralixios_api` correctly
-- Has a visible exit option (in the status bar)
-- README actually explains the app
-- The app actually runs without errors
+### `command.capture(command_string)`
 
-If something needs fixing you'll get a comment on the PR explaining what to change. Push the fix and the review continues. Apps that pass get compiled into a verified `.axapp`, merged into the library, and show up for users within 24 hours.
+Runs a command and **returns its output as a string** instead of printing it. Nothing appears on the terminal — the output comes back to your app so you can display it however you like.
+
+```python
+output = command.capture("mem")
+output = command.capture("df")
+output = command.capture("search readme.txt")
+```
+
+Returns a single string with lines separated by `\n`. Trailing whitespace is stripped. Returns an empty string if the command produced no output.
+
+The most common thing to do with the result is pass it to `draw_multiline()` or split it into a list for `draw_list()`:
+
+```python
+# Display output directly
+output = command.capture("mem")
+draw_multiline(app, 2, 4, output)
+
+# Split into lines for a scrollable list
+output = command.capture("ps")
+lines  = output.splitlines()
+draw_list(app, 2, 4, width=app.cols - 4, height=10, items=lines, selected=cursor)
+```
+
+### Important: keep it out of the draw function
+
+`command.capture()` runs a command synchronously and can be slow. **Do not call it inside your draw function** — that runs 30 times a second and needs to be fast. Instead, fetch the output in a background thread and store it in a variable that the draw function just reads:
+
+```python
+import threading
+
+output_lines = []
+
+def refresh():
+    global output_lines
+    result = command.capture("ps")
+    output_lines = result.splitlines()
+
+# Kick off a background fetch on startup
+threading.Thread(target=refresh, daemon=True).start()
+
+def draw(app):
+    draw_list(app, 2, 2, app.cols - 4, app.rows - 4,
+              items=output_lines, selected=cursor)
+    draw_status_bar(app, " R Refresh  Q Quit")
+
+def on_key(app, key):
+    if key_name(key) == "r":
+        threading.Thread(target=refresh, daemon=True).start()
+```
+
+This way your app stays smooth while the command runs in the background.
 
 ---
 
 ## Drawing Shapes
 
-API v2 adds six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also control the foreground colour, background colour, and the characters used for the fill and border.
+API v24052026 adds six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also control the foreground colour, background colour, and the characters used for the fill and border.
 
 ### How centre coords work
 
@@ -746,9 +776,53 @@ app = App(title="Shape Demo")
 run(app, draw)
 ```
 
+## Testing Your App
+
+Testing is simple — just run your `.py` file directly with Python. No special tools, no build step, nothing to install.
+
+Make sure your folder looks like this:
+
+```
+my_app/
+├── astralixios_api.py   ← grab this from the AstralixiOS SDK
+└── my_app.py            ← your app
+```
+
+Because `astralixios_api` is imported by name, Python needs to find it in the same directory as your app. As long as it's sitting right next to your `.py` file, it'll work. Then just run:
+
+```
+python my_app.py
+```
+
+That's it. You'll see your app running exactly as it would on-device. Test all your key bindings, make sure the layout doesn't break at different terminal sizes (try resizing your terminal window before running — remember, `app.cols` and `app.rows` are measured at startup), and verify that the exit shortcut is clearly visible.
+
+When you're done, do **NOT** include `astralixios_api.py` in your submission repo — the OS provides it automatically on-device.
+
+### Getting Your App onto AstralixiOS
+
+All `.axapp` files for AstralixiOS must be verified and compiled by Astroxia before they can be distributed or installed. There is no self-packaging or sideloading — this is intentional. Allowing anyone to freely compile and distribute `.axapp` bundles would create real security risks (malicious apps bypassing review) and decentralisation problems (unofficial app sources fragmenting the ecosystem). So the compilation and signing of `.axapp` bundles is handled entirely on Astroxia's end as part of the submission review process.
+
+To get your app into the official library, open a public GitHub repository with your app. It needs:
+
+```
+my_app/
+├── my_app.py     ← your app (single file only)
+├── README.md     ← what the app does and how to use it
+└── LICENSE       ← any open source licence you like
+```
+
+Then fork the AstralixiOS App Library repo and open a pull request adding your app to the `submissions/` folder, with an entry in `submissions/index.json` for your app's name, description, and category. A maintainer will review it manually for:
+
+- TUI only — no GUI, no external windows
+- Python Standard Library only — no third-party packages
+- Uses `astralixios_api` correctly
+- Has a visible exit option (in the status bar)
+- README actually explains the app
+- The app actually runs without errors
+
+If something needs fixing you'll get a comment on the PR explaining what to change. Push the fix and the review continues. Apps that pass get compiled into a verified `.axapp`, merged into the library, and show up for users within 24 hours.
+
 ---
-
-
 
 **Keyboard navigation is everything.** Your app must be completely usable without a mouse (there isn't one anyway). Arrow keys to move, Tab to cycle between focusable things, Enter to confirm, Escape to cancel or go back. If something is only reachable with a click, it's not accessible at all.
 
@@ -808,7 +882,9 @@ run(app, draw)
 | `show_notification(app, msg, duration)` | Timed pop-up banner at the bottom |
 | `set_title(app, title)` | Update app.title |
 | `sleep(seconds)` | Non-blocking pause |
+| `command.run(command_string)` | Run an Astralixi command, output goes to the terminal |
+| `command.capture(command_string)` | Run an Astralixi command, returns its output as a string |
 
 ---
 
-*AstralixiOS Developer Documentation v16-05-2026  —  API v2*
+*AstralixiOS App Developer Documentation v24-05-2026*

@@ -1,5 +1,5 @@
 """
-astralixios_api.py  -  AstralixiOS TUI Application API  v2
+astralixios_api.py  -  AstralixiOS TUI Application API  v24/05/26
 ===========================================================
 The official API for building TUI apps on AstralixiOS.
 
@@ -1251,6 +1251,112 @@ def sleep(seconds: float) -> None:
     seconds : float - how long to pause (fractions are fine, e.g. 0.05)
     """
     curses.napms(int(seconds * 1000))
+
+
+# ---------------------------------------------------------------------------
+# COMMAND RUNNER
+# ---------------------------------------------------------------------------
+
+import sys as _sys
+import io  as _io
+
+
+class _Command:
+    """
+    Thin wrapper around commands.execute_command that lets TUI apps run
+    Astralixi commands and optionally capture their output as a string.
+
+    Access this through the module-level `command` object — do not
+    instantiate _Command yourself.
+
+    Usage
+    -----
+        command.run("lf")               # fire and forget
+        output = command.capture("df")  # returns the printed output as a str
+        output = command.capture("cp src.txt dst.txt")  # args work too
+
+    The command string is passed directly to execute_command, so it works
+    exactly like typing at the Astralixi prompt — any command that exists
+    now or is added in the future will work without any changes here.
+    """
+
+    def _get_execute(self):
+        """
+        Import commands.execute_command lazily so the API file itself has no
+        hard dependency on commands.py at import time. If commands is not
+        importable (e.g. the developer is testing the API on its own), a
+        clear RuntimeError is raised rather than a cryptic ImportError.
+        """
+        try:
+            import commands as _commands
+            return _commands.execute_command
+        except ImportError:
+            raise RuntimeError(
+                "command.run/capture requires commands.py to be importable. "
+                "Make sure your app is running inside the Astralixi environment."
+            )
+
+    def run(self, command_string: str) -> None:
+        """
+        Run an Astralixi command, letting its output go straight to the
+        terminal as normal. Use this when you don't need to read the output
+        inside your app.
+
+        Args
+        ----
+        command_string : str
+            The full command exactly as you would type it at the Astralixi
+            prompt, e.g. ``"lf"``, ``"cp src.txt dst.txt"``, ``"df"``.
+
+        Example
+        -------
+            command.run("mkdir notes")
+            command.run("rm old_file.txt")
+        """
+        execute = self._get_execute()
+        execute(command_string)
+
+    def capture(self, command_string: str) -> str:
+        """
+        Run an Astralixi command and return everything it printed as a string
+        instead of letting it go to the terminal.
+
+        The output is NOT shown on screen — it is captured silently and
+        returned to your app so you can display it however you like (e.g.
+        with draw_multiline or draw_list).
+
+        Args
+        ----
+        command_string : str
+            The full command exactly as you would type it at the Astralixi
+            prompt, e.g. ``"mem"``, ``"ps"``, ``"search readme.txt"``.
+
+        Returns
+        -------
+        str
+            Everything the command printed to stdout, as a single string.
+            Lines are separated by ``\\n``. Trailing whitespace is stripped.
+            Returns an empty string if the command produced no output.
+
+        Example
+        -------
+            output = command.capture("mem")
+            lines  = output.splitlines()
+            draw_multiline(app, 2, 4, output)
+        """
+        execute  = self._get_execute()
+        buf      = _io.StringIO()
+        old_stdout = _sys.stdout
+        try:
+            _sys.stdout = buf
+            execute(command_string)
+        finally:
+            _sys.stdout = old_stdout   # always restore, even if execute raises
+        return buf.getvalue().rstrip()
+
+
+# The single instance apps import and call.
+command = _Command()
 
 
 # ---------------------------------------------------------------------------
