@@ -1,23 +1,9 @@
 import commands
+import astralixios_api
 import time
 import readline
 import os
 import signal
-
-# ── Kernel filesystem bootstrap ────────────────────────────────────────────────
-# Must run before anything else. /proc is required by psutil (ps, kill, mem).
-# /dev is required for terminal I/O (readline, input). /tmp is required by
-# some C runtime internals. Failures are non-fatal — we continue regardless.
-def _bootstrap():
-    for cmd in (
-        "mount -t proc     proc     /proc",
-        "mount -t sysfs    sys      /sys",
-        "mount -t devtmpfs dev      /dev",
-        "mount -t tmpfs    tmpfs    /tmp",
-    ):
-        os.system(cmd)
-
-_bootstrap()
 
 try:
     os.nice(-20)   # Sets highest process priority — works when run as root
@@ -44,7 +30,7 @@ def _completer(text, state):
 readline.set_completer(_completer)
 readline.parse_and_bind('tab: complete')
 
-# credentials.txt for first full release of Astralixi OS with saved credentials on disk.
+# credentials.txt stores the user's credentials on disk.
 CREDENTIALS_FILE = "credentials.txt"
 
 # Checks if credentials.txt has the user's credentials
@@ -70,16 +56,13 @@ def login():
     print("-- Login --")
     attempts = 3
     while attempts > 0:
-        # looks for credentials.txt, if not found, system gets halted
+        # looks for credentials.txt, if not found, exits
         try:
             with open(CREDENTIALS_FILE, "r") as f:
                 lines = f.readlines()
         except FileNotFoundError:
             print(f"Error: '{CREDENTIALS_FILE}' not found.")
-            # PID 1 cannot call exit() cleanly — halt the system instead
-            os.system("halt -f")
-            while True:
-                time.sleep(3600)
+            raise SystemExit(1)
         # To store username and password in variables
         stored_username = ""
         stored_password = ""
@@ -106,10 +89,8 @@ def login():
             if attempts > 0:
                 print(f"Incorrect credentials. {attempts} attempt(s) remaining.\n")
             else:
-                print("Too many failed attempts. Halting.")
-                os.system("halt -f")
-                while True:
-                    time.sleep(3600)
+                print("Too many failed attempts. Exiting.")
+                raise SystemExit(1)
 
 if credentials_are_set():
     login()
@@ -134,17 +115,10 @@ while True:
         time.sleep(0.1)
     # ctrl+c and other interrupts don't work, as Astralixi OS is the operating system
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt ignored — Astralixi OS is PID 1 and cannot exit.")
+        print("\nUse 'Q' or Escape to exit Astralixi OS.")
     # Lets you extract any other error that comes up, and store the error details
     except Exception as e:
-        # PID 1 must never crash out. Log the error and continue.
+        # Log the error and continue.
         print(f"\n[!] Unhandled error in main loop: {e}")
         print("[i] Astralixi OS is recovering — press Enter to continue.")
 
-# ── PID 1 safety net ──────────────────────────────────────────────────────────
-# Execution should never reach here. If it does, hang indefinitely rather than
-# letting the kernel panic.
-print("[!] Astralixi OS main loop exited unexpectedly. Halting.")
-os.system("halt -f")
-while True:
-    time.sleep(3600)

@@ -6,6 +6,7 @@ import math
 import psutil
 import platform
 
+
 # ── State ──────────────────────────────────────────────────────────────────────
 
 command_history_log = []   # Tracks every successfully run command
@@ -77,6 +78,7 @@ def execute_command(command):
         # Misc
         'aka':    shortcut_to_long_command,
         'help':   help_manual,
+        'axrun':  app_run,
         'hello':  hello,
         'pyrun':  pyrun,
     }
@@ -100,8 +102,8 @@ def execute_command(command):
 def list_files():
     """List only files (not directories) in the current directory."""
     cwd   = os.getcwd()
-    files = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))]
-    if files:
+    files = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))] # list of files
+    if files: # if not empty
         for f in files:
             print(f)
     else:
@@ -110,17 +112,17 @@ def list_files():
 
 def create_file(name):
     """Create a new empty file."""
-    if os.path.exists(name):
+    if os.path.exists(name): # if file already exists
         print(f"Error: '{name}' already exists.")
         return
-    with open(name, "w"):
+    with open(name, "w"): # or else create the file
         pass
     print(f"File '{name}' created.")
 
 
 def remove_file(path):
     """Delete a file (not a directory — use rmdir for that)."""
-    if os.path.isdir(path):
+    if os.path.isdir(path): # checks if it is a directory (if it is, it doesn't allow)
         print(f"Error: '{path}' is a directory. Use 'rmdir' instead.")
         return
     try:
@@ -304,7 +306,7 @@ def kill_process(selected_pid):
     try:
         pid = int(selected_pid)
         if pid == 1:
-            print("Error: Cannot kill PID 1 — that is Astralixi OS itself. Doing so would kernel panic.")
+            print("Error: Cannot kill PID 1")
             return
         os.kill(pid, signal.SIGKILL)
         print(f"Process {pid} terminated.")
@@ -348,7 +350,7 @@ def disk_free():
 def memory_used():
     """Show current RAM usage (total, used, available, and percent)."""
     mem = psutil.virtual_memory()
-    gb  = 1024 ** 3
+    gb  = 1024 ** 3 # KiloBytes to GigaBytes
     print(
         f"Total: {mem.total     / gb:.2f} GB  |  "
         f"Used:  {mem.used      / gb:.2f} GB  |  "
@@ -631,10 +633,8 @@ def hello():
 def pyrun(script_path):
     """
     Run a Python script file.
-    [!] Not yet implemented — coming in a future version of Astralixi OS.
     """
-    print("[!] 'pyrun' is not yet implemented.")
-    print("[i] Python script execution is planned for a future version of Astralixi OS.")
+    os.system(f'python {script_path}')
 
 def shortcut_to_long_command(shortcut, *cmd_parts):
     """
@@ -648,6 +648,28 @@ def shortcut_to_long_command(shortcut, *cmd_parts):
     full_command        = " ".join(cmd_parts)
     _shortcuts[shortcut] = full_command
     print(f"Shortcut '{shortcut}' -> '{full_command}' saved.")
+
+
+def app_run(appName):
+    """Runs an app in-process so it can access astralixios_api. (app must be made with Astralixi API)"""
+    import runpy
+    import astralixios_api
+
+    apps_dir = os.path.expanduser("~/.axapps/")
+    app_path = os.path.join(apps_dir, appName + ".axapp")
+
+    if not os.path.isfile(app_path):
+        print(f"Error: App '{appName}' not found in {apps_dir}")
+        return
+
+    # Inject every name from astralixios_api into the app's global namespace
+    # so apps can do 'from astralixios_api import *' or use App, draw_box, etc.
+    init_globals = {k: v for k, v in vars(astralixios_api).items() if not k.startswith("__")}
+
+    try:
+        runpy.run_path(app_path, init_globals=init_globals, run_name="__main__")
+    except SystemExit:
+        pass  # App called sys.exit() or raised SystemExit — normal exit, not a crash
 
 
 def help_manual():
@@ -698,6 +720,8 @@ Available Commands
   Misc:
     hello                      Says "hello" to you!
     aka  <alias> <cmd>         Create a command shortcut
+    axrun <app path>           Run an app made with astralixi api (no .axapp needed in path)
+    pyrun <path>               Run a python file
     help                       Show this help message
 ══════════════════════════════════════════════════════════
 """)
