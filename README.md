@@ -1,5 +1,5 @@
 # Astralixi
-Astralixi is a lightweight TUI userspace designed for embedded and handheld devices, built for space enthusiasts and tech enthusiasts alike. With an emphasis on simplicity, performance, and accessibility, Astralixi provides a clean, terminal-based interface for users who want a minimal, efficient computing environment.
+Astralixi is a lightweight TUI userspace designed for all ARM devices, built for space enthusiasts and tech enthusiasts alike. With an emphasis on simplicity, performance, and accessibility, Astralixi provides a clean, terminal-based interface for users who want a minimal, efficient computing environment.
 
 ## Features
 - Lightweight & Fast: Designed to work efficiently with limited resources.
