@@ -21,6 +21,6 @@ Astralixi is released under the GNU General Public License with allowed changes.
 
 **Astralixi for PicoCalc has reached End of Life and is no longer actively maintained.**
 
-A new version of Astralixi is in development (and/or has been released). This new iteration is written primarily in Python and is planned to support all ARM 32-bit and 64-bit devices. While tar[...]
+A new version of Astralixi is in development (and/or has been released). This new iteration is written primarily in Python and is planned to support all ARM 32-bit and 64-bit devices.
 
 ---
