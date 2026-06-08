@@ -1,5 +1,5 @@
 import commands
-import astralixios_api
+import astralixi_api
 import time
 import readline
 import os
@@ -92,6 +92,15 @@ def login():
                 print("Too many failed attempts. Exiting.")
                 raise SystemExit(1)
 
+commands.clear_terminal()
+
+print(r"""
+    _   ___ _____ ___    _   _    _____  _____ 
+   /_\ / __|_   _| _ \  /_\ | |  |_ _\ \/ /_ _|
+  / _ \\__ \ | | |   / / _ \| |__ | | >  < | | 
+ /_/ \_\___/ |_| |_|_\/_/ \_\____|___/_/\_\___| 
+""")
+
 if credentials_are_set():
     login()
 
@@ -113,12 +122,11 @@ while True:
                 readline.remove_history_item(0)
         # Delay to avoid CPU overload
         time.sleep(0.1)
-    # ctrl+c and other interrupts don't work, as Astralixi OS is the operating system
+    # ctrl+c and other interrupts shouldn't work
     except KeyboardInterrupt:
-        print("\nUse 'Q' or Escape to exit Astralixi OS.")
+        print("\nDo not use Ctrl+C to exit Astralixi!")
     # Lets you extract any other error that comes up, and store the error details
     except Exception as e:
-        # Log the error and continue.
-        print(f"\n[!] Unhandled error in main loop: {e}")
-        print("[i] Astralixi OS is recovering — press Enter to continue.")
+        # if any error pass
+        pass
 

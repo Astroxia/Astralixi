@@ -1,10 +1,13 @@
 import os
+import sys
 import signal
 import subprocess
 import shutil
 import math
 import psutil
 import platform
+import random
+import urllib.request
 
 
 # ── State ──────────────────────────────────────────────────────────────────────
@@ -12,7 +15,7 @@ import platform
 command_history_log = []   # Tracks every successfully run command
 _shortcuts         = {}    # Stores aka aliases: { shortcut: full_command }
 
-# Credentials are stored in RAM only — they are NOT persisted to disk.
+# Credentials are stored in RAM only - they are NOT persisted to disk.
 # Populated at startup by main.py reading credentials.txt (legacy bootstrap),
 # or left empty if no credentials file exists.
 _credentials = {
@@ -41,6 +44,7 @@ def execute_command(command):
     COMMANDS = {
         # Files
         'lf':     list_files,
+        'wc':     file_stats,
         'mkf':    create_file,
         'rm':     remove_file,
         'cp':     copy_file,
@@ -58,15 +62,19 @@ def execute_command(command):
         'mvdir':  move_folder,
         'rndir':  rename_folder,
         # System
-        'ps':       processes_running,
-        'kill':     kill_process,
-        'df':       disk_free,
-        'mem':      memory_used,
-        'clear':    clear_terminal,
-        'history':  command_history,
-        'whoami':   who_am_i,
-        'username': change_username,
-        'password': change_password,
+        'ps':        processes_running,
+        'kill':      kill_process,
+        'df':        disk_free,
+        'mem':       memory_used,
+        'clear':     clear_terminal,
+        'history':   command_history,
+        'whoami':    who_am_i,
+        'username':  change_username,
+        'password':  change_password,
+        'uptime':    uptime, 
+        'reboot':    reboot, 
+        'shutdown':  shutdown, 
+        'hibernate': hibernate,  
         # Space
         'orbit':         orbital_speed,
         'rocket':        rocket_equation,
@@ -75,12 +83,20 @@ def execute_command(command):
         'phases':        moon_phases,
         'timeinspace':   time_in_space,
         'constellation': constellation_reference,
+        'trackiss':      track_iss,
+        'sunit':         space_unit_convert, 
+        # Hardware
+        'cpuinfo':      cpu_info,
         # Misc
-        'aka':    shortcut_to_long_command,
-        'help':   help_manual,
-        'axrun':  app_run,
-        'hello':  hello,
-        'pyrun':  pyrun,
+        'aka':         shortcut_to_long_command,
+        'help':        help_manual,
+        'axrun':       app_run,
+        'hello':       hello,
+        'pyrun':       pyrun,
+        # 'clip':        clip, # not implemented (copies cmd's output to clipboard)
+        'beacon':      ping_website, 
+        'calc':        calculator,
+        'rng':         random_number, 
     }
 
     if cmd in COMMANDS:
@@ -108,6 +124,27 @@ def list_files():
             print(f)
     else:
         print("No files found.")
+
+
+def file_stats(file_path):
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    char_count = Counter(content)
+
+    word_list = content.split()
+    word_count = len(word_list)
+
+    line_count = len(content.split('\n'))
+
+    print(f"File Path: {file_path}")
+    print("Character Counts:")
+    for char, count in char_count.items():
+        print(f"{char}: {count}")
+    print("\nWord Counts:")
+    print(f"Total Words: {word_count}")
+    print("\nLine Counts:")
+    print(f"Total Lines: {line_count}")
 
 
 def create_file(name):
@@ -292,6 +329,18 @@ def rename_folder(old_name, new_name):
 #  SYSTEM COMMANDS
 # ══════════════════════════════════════════════════════════════════════════════
 
+def uptime():
+    uptime_seconds = os.sysconf('sysconf_2')
+    uptime_minutes = uptime_seconds/60
+    uptime_hours = uptime_minutes/60
+    if uptime_seconds > 59:
+        print(f'Uptime: {uptime_minutes}min(s)')
+    elif uptime_minutes > 59:
+        print(f'Uptime: {uptime_hours}hour(s)')
+    else:
+        print(f'Uptime: {uptime_seconds}sec(s)')
+
+
 def processes_running():
     """List all running processes with their PID and name."""
     for proc in psutil.process_iter(['pid', 'name']):
@@ -359,6 +408,58 @@ def memory_used():
     )
 
 
+def shutdown():
+    confirm = input("Do you wish to shutdown your computer? ")
+    try:
+        if confirm.lower() == "yes":
+            os.system("sudo shutdown -h now")
+        else:
+            pass
+    except Exception as e:
+        pass
+
+
+def reboot():
+    confirm = input("Do you wish to reboot your computer? ")
+    try:
+        if confirm.lower() == "yes":
+            os.system("sudo reboot")
+        else:
+            pass
+    except Exception as e:
+        pass
+
+
+def hibernate():
+    confirm = input("Do you wish to hibernate your computer? ")
+    try:
+        if confirm.lower() == "yes":
+            os.system("sudo systemctl hibernate")
+        else:
+            pass
+    except Exception as e:
+        pass
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  HARDWARE-RELATED COMMANDS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def cpu_info():
+    # Get logical CPU core count
+    print("Logical CPU Cores:", os.cpu_count())
+
+    # Get basic processor name (Output varies significantly by OS)
+    print("Processor Name:", platform.processor())
+
+    # Get the machine type (e.g., 'AMD64', 'x86_64', 'arm64')
+    print("Machine Type:", platform.machine())
+
+    # Get 64-bit vs 32-bit architecture info
+    print("Architecture:", platform.architecture()[0])
+    print("Is 64-bit Interpreter:", sys.maxsize > 2**32)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  ACCOUNT COMMANDS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -418,6 +519,24 @@ def change_password():
 # ══════════════════════════════════════════════════════════════════════════════
 #  SPACE COMMANDS
 # ══════════════════════════════════════════════════════════════════════════════
+
+def space_unit_convert(value, unit, converted_unit):
+    if converted_unit == "LY":
+        if unit == "AU":
+            converted = value / 63241 # 63241 AU = 1 LY
+    elif converted_unit == "AU":
+        if unit == "LY":
+            converted = value * 63241
+        elif unit == "KM":
+            converted = value / 150000000 # 150mil KM = 1 AU
+    elif converted_unit == "KM":
+        if unit == "AU":
+            converted = value * 150000000
+    else:
+        print("Command Failed! Please give in format of: 'sunit [value] [value's unit] [unit to convert to]'")
+    
+    print(f"{value}{unit} equals to {converted}{converted_unit}")
+
 
 def orbital_speed(planet):
     """Show orbital speed, period, and distance for Earth (around Sun) or Moon (around Earth)."""
@@ -622,12 +741,118 @@ def constellation_reference():
         print(f"{name:<14}  {star:<16}  {notes}")
 
 
+def track_iss():
+    try:
+        print("May take some time, depending on internet speed...")
+
+        url = "https://api.wheretheiss.at/v1/satellites/25544"
+        with urllib.request.urlopen(url) as response:
+            # Read the content (returns bytes)
+            body = response.read()
+            # get string from bytes
+            html = body.decode('utf-8')
+
+        print()
+        print("ISS TRACKING DATA:")
+
+        target_words = ['"latitude":', '"longitude":', '"altitude":', '"velocity":']
+        target_words_headings = ['Latitude:', 'Longitude:', 'Altitude:', 'Velocity:']
+
+        num_chars = 10 # num of chars of data extracted from each
+        
+        # goes through each target data and prints it's data
+        for i in range(len(target_words)):    
+            # 1. Find the starting position of the target word
+            start_idx = html.find(target_words[i]) 
+
+            if start_idx != -1:
+                # 2. Shift the start point to the end of the word
+                content_start = start_idx + len(target_words[i])
+                
+                # 3. Slice for the specific number of characters
+                result = html[content_start : content_start + num_chars]
+                print(target_words_headings[i], result)
+        
+    except Exception as e:
+        print("Error has occured!")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  MISC COMMANDS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def hello():
     print("Hello!")
+
+def ping_website(url):
+    try:
+        # Pings the website via HTTP GET
+        response = urllib.request.urlopen(url, timeout=5)
+        print(f"Site is up! Status code: {response.getcode()}")
+    except Exception as e:
+        print(f"Site is down or unreachable: {e}")
+
+
+def calculator(equation):
+    expression = equation.split()
+
+    if len(expression) != 3:
+        print("Command failed!")
+        print("Only do binary operations:")
+        print("e.g '5 ^ 4' or '5 * 3'")
+        return
+
+    num1 = float(expression[0]) # typecasts from string to a float
+    operator = expression[1]
+    num2 = float(expression[2])
+
+    if operator == "+":
+        solution = num1 + num2
+
+    elif operator == "-":
+        solution = num1 - num2
+
+    elif operator == "/":
+        solution = num1 / num2
+
+    elif operator == "*":
+        solution = num1 * num2
+
+    elif operator == "%":
+        solution = num1 % num2
+
+    elif operator == "^":
+        solution = num1 ** num2
+
+    else:
+        print("Command failed!")
+        print("Only do binary operations:")
+        print("e.g '5 ^ 4' or '5 * 3'")
+        return
+
+    print("= ", solution)
+
+
+def random_number(num_range):
+    range_split = num_range.split()
+
+    if len(range_split) != 2:
+        print("Error!")
+        print("Please give in format of:")
+        print("'num1 num2'")
+        return
+
+    try:
+        num1 = int(range_split[0])
+        num2 = int(range_split[1])
+    except ValueError:
+        print("Error!")
+        print("Both values must be integers.")
+        return
+
+    final_num = random.randint(num1, num2)
+    print("Number:", final_num)
+    return final_num
 
 
 def pyrun(script_path):
@@ -653,7 +878,7 @@ def shortcut_to_long_command(shortcut, *cmd_parts):
 def app_run(appName):
     """Runs an app in-process so it can access astralixios_api. (app must be made with Astralixi API)"""
     import runpy
-    import astralixios_api
+    import astralixi_api
 
     apps_dir = os.path.expanduser("~/.axapps/")
     app_path = os.path.join(apps_dir, appName + ".axapp")
@@ -673,7 +898,7 @@ def app_run(appName):
 
 
 def help_manual():
-    """Print all available commands and their usage."""
+    """Print basic available commands and their usage."""
     print("""
 Available Commands
 ══════════════════════════════════════════════════════════
