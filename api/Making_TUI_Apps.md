@@ -1,14 +1,14 @@
-# Making Apps for AstralixiOS
+# Making Apps for Astralixi
 
-So you wanna make an app for AstralixiOS. Sick. This guide walks you through everything — from writing your very first line of code all the way to getting it into the official app library. You don't need to be a programming genius to follow this. If you know basic Python, you're good.
+So you wanna make an app for Astralixi. Sick. This guide walks you through everything — from writing your very first line of code all the way to getting it into the official app library. You don't need to be a programming genius to follow this. If you know basic Python, you're good.
 
 ---
 
-## First — What even IS AstralixiOS?
+## First — What even IS Astralixi?
 
-Okay so quick thing before we get into code. AstralixiOS is NOT a custom operating system or kernel or anything crazy like that. It's basically just a program — called the Astralixi binary — that runs on top of regular Raspberry Pi OS Lite. When the device boots up, a startup script launches the Astralixi binary automatically, and boom, you've got the full Astralixi experience.
+Okay so quick thing before we get into code. Astralixi is NOT a custom operating system or kernel or anything crazy like that. It's basically just a program — called the Astralixi binary — that runs on top of a regular ARM Linux OS. When the device boots up, a startup script launches the Astralixi binary automatically, and boom, you've got the full Astralixi experience.
 
-Your app runs inside that environment. It's literally just a Python script that uses the AstralixiOS API. That's it. Nothing wild going on under the hood.
+Your app runs inside that environment. It's literally just a Python script that uses the Astralixi API. That's it. Nothing wild going on under the hood.
 
 ---
 
@@ -38,8 +38,8 @@ Your app lives inside the terminal window. Don't open a separate window with `tk
 **2. Python Standard Library only.**
 This one is really important. You cannot use `pip install` or have a `requirements.txt`. No third-party packages at all. Everything you need has to come from Python's built-in standard library — the stuff that's already there when you install Python. The reason for this is that your app needs to work on any clean Python install, no setup required.
 
-**3. Use the AstralixiOS API.**
-Your app must import `astralixios_api` and use it for drawing things on screen. Don't write raw curses code. Don't call `os.system("clear")`. Don't print ANSI escape codes manually. The API handles all of that messy stuff for you, and it makes sure your app works properly on AstralixiOS.
+**3. Use the Astralixi API.**
+Your app must import `astralixi_api` and use it for drawing things on screen. Don't write raw curses code. Don't call `os.system("clear")`. Don't print ANSI escape codes manually. The API handles all of that messy stuff for you, and it makes sure your app works properly on Astralixi.
 
 **4. One file only.**
 Your entire app has to be a single `.py` file. No importing from other files you wrote. No folders of modules. Just the one file. (This will probably change in a future version, but right now it's a hard requirement.)
@@ -51,15 +51,15 @@ Q and Escape will quit any app automatically — the API handles that. But users
 
 ## Setting Up
 
-Grab `astralixios_api.py` from the AstralixiOS SDK and put it in the same folder as your app file. Your folder should look like this:
+Grab `astralixi_api.py` from the Astralixi SDK and put it in the same folder as your app file. Your folder should look like this:
 
 ```
 my_app/
-├── astralixios_api.py   ← the API (you need this to develop locally)
+├── astralixi_api.py   ← the API (you need this to develop locally)
 └── my_app.py            ← your actual app
 ```
 
-That's literally all the setup. When you submit your app, don't include `astralixios_api.py` in your repo — the OS already has it installed. You only need it locally for testing.
+That's literally all the setup. When you submit your app, don't include `astralixi_api.py` in your repo — the OS already has it installed. You only need it locally for testing.
 
 Run your app with:
 
@@ -71,7 +71,7 @@ python my_app.py
 
 ## Your First App — Hello World
 
-Every AstralixiOS app follows the same three steps:
+Every Astralixi app follows the same three steps:
 
 1. Create an `App` object (this is the thing you pass to everything)
 2. Write a draw function (gets called 30 times per second to draw the screen)
@@ -80,11 +80,11 @@ Every AstralixiOS app follows the same three steps:
 Here's the smallest valid app:
 
 ```python
-from astralixios_api import App, draw_box, draw_text, draw_status_bar, run
+from astralixi_api import App, draw_box, draw_text, draw_status_bar, run
 
 def draw(app):
     draw_box(app, 0, 0, app.cols, app.rows, title="Hello World", double_border=True)
-    draw_text(app, 4, 2, "Welcome to AstralixiOS!")
+    draw_text(app, 4, 2, "Welcome to Astralixi!")
     draw_status_bar(app, " Q to quit")
 
 app = App(title="Hello World")
@@ -95,7 +95,7 @@ Run it and you'll see a box with "Hello World" as the title, some text inside, a
 
 Let's break down what each line is doing:
 
-- `from astralixios_api import ...` — this imports the functions we need from the API
+- `from astralixi_api import ...` — this imports the functions we need from the API
 - `def draw(app):` — this is the draw function, which gets called every frame
 - `draw_box(...)` — draws a rectangular border around the whole screen
 - `draw_text(...)` — draws some text at column 4, row 2
@@ -126,7 +126,7 @@ Once your app is running, the `app` object has these useful bits of info you can
 | `app.title` | str | The app's current title (changeable with `set_title()`) |
 | `app.running` | bool | True while the app is running, False once it's quitting |
 
-The most useful ones are `app.cols` and `app.rows`. You'll use these ALL the time for positioning things on screen. They get measured once when you create the `App` object and stay fixed — AstralixiOS runs on a fixed 720p display and doesn't resize while the app is open.
+The most useful ones are `app.cols` and `app.rows`. You'll use these ALL the time for positioning things on screen. They get measured once when you create the `App` object and stay fixed — Astralixi runs on a fixed 720p display and doesn't resize while the app is open.
 
 ---
 
@@ -146,7 +146,7 @@ So if you want to draw something in the top-left corner, you use col=0, row=0. I
 
 ### The 720p Reference Grid
 
-AstralixiOS is designed for a 720p display, which works out to roughly **213 columns x 45 rows** at the character size AstralixiOS uses. That's your reference — when you design your app, imagine a 213x45 grid.
+Astralixi is designed for a 720p display, which works out to roughly **213 columns x 45 rows** at the character size Astralixi uses. That's your reference — when you design your app, imagine a 213x45 grid.
 
 But don't hardcode those numbers! Always use `app.cols` and `app.rows` in your code so your layout adjusts correctly:
 
@@ -444,7 +444,7 @@ Styles you can pick from: `"braille"`, `"dots"`, `"line"`, `"box"`.
 Here's a complete working app to show how everything fits together. It's a todo list where you can add and delete items.
 
 ```python
-from astralixios_api import (
+from astralix_api import (
     App, run, quit,
     draw_box, draw_text, draw_list, draw_status_bar,
     draw_input, draw_button, draw_modal,
@@ -453,7 +453,7 @@ from astralixios_api import (
     ATTR_BOLD,
 )
 
-todos   = ["Buy groceries", "Write AstralixiOS app", "Read the docs"]
+todos   = ["Buy groceries", "Write Astralixi app", "Read the docs"]
 cursor  = 0
 scroll  = 0
 adding  = False
@@ -585,7 +585,7 @@ Apps can run any Astralixi command directly through the `command` object. This w
 Import `command` alongside everything else:
 
 ```python
-from astralixios_api import App, draw_multiline, draw_status_bar, run, command
+from astralixi_api import App, draw_multiline, draw_status_bar, run, command
 ```
 
 ### `command.run(command_string)`
@@ -658,7 +658,7 @@ This way your app stays smooth while the command runs in the background.
 
 ## Drawing Shapes
 
-API v24052026 adds six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also control the foreground colour, background colour, and the characters used for the fill and border.
+The API has six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also control the foreground colour, background colour, and the characters used for the fill and border.
 
 ### How centre coords work
 
@@ -741,7 +741,7 @@ draw_octagon(app, cx, cy, size, fill=True, fg=COLOR_WHITE, bg=COLOR_BLACK,
 ### Full example — shape showcase
 
 ```python
-from astralixios_api import (App, draw_box, draw_status_bar, run,
+from astralixi_api import (App, draw_box, draw_status_bar, run,
                               draw_square, draw_circle, draw_triangle,
                               draw_rectangle, draw_hexagon, draw_octagon,
                               COLOR_CYAN, COLOR_YELLOW, COLOR_RED,
@@ -784,11 +784,11 @@ Make sure your folder looks like this:
 
 ```
 my_app/
-├── astralixios_api.py   ← grab this from the AstralixiOS SDK
+├── astralixi_api.py   ← grab this from the Astralixi SDK
 └── my_app.py            ← your app
 ```
 
-Because `astralixios_api` is imported by name, Python needs to find it in the same directory as your app. As long as it's sitting right next to your `.py` file, it'll work. Then just run:
+Because `astralixi_api` is imported by name, Python needs to find it in the same directory as your app. As long as it's sitting right next to your `.py` file, it'll work. Then just run:
 
 ```
 python my_app.py
@@ -796,11 +796,11 @@ python my_app.py
 
 That's it. You'll see your app running exactly as it would on-device. Test all your key bindings, make sure the layout doesn't break at different terminal sizes (try resizing your terminal window before running — remember, `app.cols` and `app.rows` are measured at startup), and verify that the exit shortcut is clearly visible.
 
-When you're done, do **NOT** include `astralixios_api.py` in your submission repo — the OS provides it automatically on-device.
+When you're done, do **NOT** include `astralixi_api.py` in your submission repo — the provides it automatically on-device.
 
-### Getting Your App onto AstralixiOS
+### Getting Your App onto Astralixi
 
-All `.axapp` files for AstralixiOS must be verified and compiled by Astroxia before they can be distributed or installed. There is no self-packaging or sideloading — this is intentional. Allowing anyone to freely compile and distribute `.axapp` bundles would create real security risks (malicious apps bypassing review) and decentralisation problems (unofficial app sources fragmenting the ecosystem). So the compilation and signing of `.axapp` bundles is handled entirely on Astroxia's end as part of the submission review process.
+All `.axapp` files for Astralixi must be verified and compiled by Astroxia before they can be distributed or installed. There is no self-packaging or sideloading — this is intentional. Allowing anyone to freely compile and distribute `.axapp` bundles would create real security risks (malicious apps bypassing review) and decentralisation problems (unofficial app sources fragmenting the ecosystem). So the compilation and signing of `.axapp` bundles is handled entirely on Astroxia's end as part of the submission review process.
 
 To get your app into the official library, open a public GitHub repository with your app. It needs:
 
@@ -811,11 +811,11 @@ my_app/
 └── LICENSE       ← any open source licence you like
 ```
 
-Then fork the AstralixiOS App Library repo and open a pull request adding your app to the `submissions/` folder, with an entry in `submissions/index.json` for your app's name, description, and category. A maintainer will review it manually for:
+Then fork the Astralixi App Library repo and open a pull request adding your app to the `submissions/` folder, with an entry in `submissions/index.json` for your app's name, description, and category. A maintainer will review it manually for:
 
 - TUI only — no GUI, no external windows
 - Python Standard Library only — no third-party packages
-- Uses `astralixios_api` correctly
+- Uses `astralixi_api` correctly
 - Has a visible exit option (in the status bar)
 - README actually explains the app
 - The app actually runs without errors
@@ -834,7 +834,7 @@ If something needs fixing you'll get a comment on the PR explaining what to chan
 
 **Test at 80x24.** That's a really common terminal size. Make sure your layout doesn't break or overflow at that size — some users might run your app on a regular terminal before installing it.
 
-**Use global variables for state.** Since your draw function and input function are both separate functions, you'll use `global` variables to share state between them. This is fine for AstralixiOS apps — see the todo app example above.
+**Use global variables for state.** Since your draw function and input function are both separate functions, you'll use `global` variables to share state between them. This is fine for Astralixi apps — see the todo app example above.
 
 ---
 
@@ -887,4 +887,4 @@ If something needs fixing you'll get a comment on the PR explaining what to chan
 
 ---
 
-*AstralixiOS App Developer Documentation v24-05-2026*
+*Astralixi App Developer Documentation v10-06-2026*

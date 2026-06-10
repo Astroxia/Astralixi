@@ -1,12 +1,12 @@
 """
-astralixios_api.py  -  AstralixiOS TUI Application API  v24/05/26
+astralixi_api.py  -  Astralixi TUI Application API  v10/06/26
 ===========================================================
-The official API for building TUI apps on AstralixiOS.
+The official API for building TUI apps on Astralixi.
 
 HOW ASTRALIXI WORKS
 --------------------
-AstralixiOS is not a custom operating system or kernel. It is a TUI binary
-(the Astralixi environment) that runs on top of Raspberry Pi OS Lite. When
+Astralixi is not a custom operating system or kernel. It is a TUI binary
+(the Astralixi environment) that runs on top of any ARM Linux OS. When
 the device boots, a startup script launches the Astralixi binary automatically,
 giving the user the full Astralixi experience. Your app runs inside that
 environment - it is just a Python script that uses this API.
@@ -27,7 +27,7 @@ RULES
 
 DISPLAY MODEL
 -------------
-AstralixiOS runs on a fixed 720p display. There is no window resizing at
+Astralixi runs on a fixed 720p display. There is no window resizing at
 runtime. The TUI grid maps to approximately 213 columns x 45 rows
 (at 6x16 px per character cell).
 
@@ -37,11 +37,11 @@ looks correct regardless of the exact terminal dimensions.
 
 QUICK START
 -----------
-    from astralixios_api import App, draw_box, draw_text, draw_status_bar, run
+    from astralixi_api import App, draw_box, draw_text, draw_status_bar, run
 
     def draw(app):
         draw_box(app, 0, 0, app.cols, app.rows, title="My App", double_border=True)
-        draw_text(app, 4, 2, "Hello, AstralixiOS!")
+        draw_text(app, 4, 2, "Hello, Astralixi!")
         draw_status_bar(app, " Q to quit")
 
     app = App(title="My App")
@@ -188,13 +188,13 @@ class App:
     Args
     ----
     title : str, optional
-        The app name. Defaults to "AstralixiOS App".
+        The app name. Defaults to "Astralixi App".
     fps : int, optional
         Target frames per second for the draw loop. Default is 30.
         Lower = less CPU. Higher = snappier feel, though above 30 is rarely needed.
     """
 
-    def __init__(self, title: str = "AstralixiOS App", fps: int = 30):
+    def __init__(self, title: str = "Astralixi App", fps: int = 30):
         self.title   = title
         self.fps     = max(1, fps)
         self.running = False
@@ -202,7 +202,7 @@ class App:
         self._notifications = []     # list of (message, expiry, fg, bg) tuples
 
         # Measure the terminal once at startup.
-        # AstralixiOS does not resize at runtime, so this stays fixed.
+        # Astralixi does not resize at runtime, so this stays fixed.
         size = shutil.get_terminal_size(fallback=(REF_COLS, REF_ROWS))
         self.cols    = size.columns
         self.rows    = size.lines
@@ -222,7 +222,7 @@ def run(app: App, draw_fn, input_fn=None) -> None:
     curses.wrapper() or curses.endwin() yourself.
 
     Q and Escape always quit the app. Make sure your status bar or UI makes
-    this clear to the user - every AstralixiOS app must have a visible exit
+    this clear to the user - every Astralixi app must have a visible exit
     option.
 
     Args
@@ -239,7 +239,7 @@ def run(app: App, draw_fn, input_fn=None) -> None:
     def _main(stdscr):
         app._win = stdscr
 
-        # Hide the text cursor - AstralixiOS TUI apps do not use a visible cursor.
+        # Hide the text cursor - Astralixi TUI apps do not use a visible cursor.
         # Mouse support is not available yet; it will be added in a future version
         # and will be limited to scrolling only.
         curses.curs_set(0)
@@ -338,7 +338,7 @@ def get_size(app: App) -> tuple:
     """
     Return the terminal dimensions as (cols, rows).
 
-    Since AstralixiOS does not resize at runtime, this always returns the
+    Since Astralixi does not resize at runtime, this always returns the
     same values that were measured when App() was created. It is here mainly
     for clarity and convenience.
 
@@ -728,7 +728,7 @@ def draw_input(app: App, col: int, row: int, width: int, value: str,
     update the value string and pass it back in each frame. See the todo
     app example in the docs for how to wire this up.
 
-    There is no visible cursor. AstralixiOS TUI apps do not support a text
+    There is no visible cursor. Astralixi TUI apps do not support a text
     cursor. The focused field is highlighted instead so the user knows where
     they are typing.
 
