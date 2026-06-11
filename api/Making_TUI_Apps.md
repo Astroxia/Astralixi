@@ -1,12 +1,12 @@
 # Making Apps for Astralixi
 
-So you wanna make an app for Astralixi. Sick. This guide walks you through everything — from writing your very first line of code all the way to getting it into the official app library. You don't need to be a programming genius to follow this. If you know basic Python, you're good.
+So you wanna make an app for Astralixi. Sick. This guide walks you through everything — from writing your very first line of code all the way to getting it into the official app library. You don't need to know much about how Astralixi works internally — we'll cover just enough to get you building.
 
 ---
 
 ## First — What even IS Astralixi?
 
-Okay so quick thing before we get into code. Astralixi is NOT a custom operating system or kernel or anything crazy like that. It's basically just a program — called the Astralixi binary — that runs on top of a regular ARM Linux OS. When the device boots up, a startup script launches the Astralixi binary automatically, and boom, you've got the full Astralixi experience.
+Okay so quick thing before we get into code. Astralixi is NOT a custom operating system or kernel or anything crazy like that. It's basically just a program — called the Astralixi binary — that runs on top of a Linux kernel and sits between you and the system. Think of it as a shell (like `bash` or `zsh`), except it's a TUI instead of traditional command-line interface.
 
 Your app runs inside that environment. It's literally just a Python script that uses the Astralixi API. That's it. Nothing wild going on under the hood.
 
@@ -14,7 +14,7 @@ Your app runs inside that environment. It's literally just a Python script that 
 
 ## What's a TUI App?
 
-TUI stands for **Terminal User Interface**. Basically, imagine a program that runs inside a terminal (like the black command line screen) but actually looks kind of cool — coloured text, boxes, borders, lists, menus, all drawn using characters. No windows. No buttons you click with a mouse. Just the terminal.
+TUI stands for **Terminal User Interface**. Basically, imagine a program that runs inside a terminal (like the black command line screen) but actually looks kind of cool — coloured text, boxes, buttons, and menus.
 
 You've probably seen apps like this before. `htop`, `nano`, `vim` — those are TUI apps. That's the kind of thing you're building.
 
@@ -33,19 +33,19 @@ Some ideas of what you could make:
 These are not just suggestions. If your app breaks any of them, it will get rejected from the library. No exceptions.
 
 **1. TUI only. No GUI ever.**
-Your app lives inside the terminal window. Don't open a separate window with `tkinter`. Don't use `pygame` or `turtle` or anything that draws outside the terminal. If a reviewer opens your app and a separate window pops up, it's an instant rejection.
+Your app lives inside the terminal window. Don't open a separate window with `tkinter`. Don't use `pygame` or `turtle` or anything that draws outside the terminal. If a reviewer opens your app and it pops up a window, it's getting rejected immediately.
 
 **2. Python Standard Library only.**
-This one is really important. You cannot use `pip install` or have a `requirements.txt`. No third-party packages at all. Everything you need has to come from Python's built-in standard library — the stuff that's already there when you install Python. The reason for this is that your app needs to work on any clean Python install, no setup required.
+This one is really important. You cannot use `pip install` or have a `requirements.txt`. No third-party packages at all. Everything you need has to come from Python's built-in standard library — `os`, `sys`, `math`, `json`, `re`, all that stuff. You can write helper functions of your own, but no external deps.
 
 **3. Use the Astralixi API.**
-Your app must import `astralixi_api` and use it for drawing things on screen. Don't write raw curses code. Don't call `os.system("clear")`. Don't print ANSI escape codes manually. The API handles all of that messy stuff for you, and it makes sure your app works properly on Astralixi.
+Your app must import `astralixi_api` and use it for drawing things on screen. Don't write raw curses code. Don't call `os.system("clear")`. Don't print ANSI escape codes manually. The API handles all of that for you and it handles it cross-platform.
 
 **4. One file only.**
 Your entire app has to be a single `.py` file. No importing from other files you wrote. No folders of modules. Just the one file. (This will probably change in a future version, but right now it's a hard requirement.)
 
 **5. Always show how to exit.**
-Q and Escape will quit any app automatically — the API handles that. But users don't know that unless you tell them. You MUST put the exit shortcut somewhere visible, like in the status bar at the bottom. If a reviewer can't figure out how to quit your app, it gets rejected.
+Q and Escape will quit any app automatically — the API handles that. But users don't know that unless you tell them. You MUST put the exit shortcut somewhere visible, like in the status bar at the bottom. It's not optional.
 
 ---
 
@@ -126,7 +126,7 @@ Once your app is running, the `app` object has these useful bits of info you can
 | `app.title` | str | The app's current title (changeable with `set_title()`) |
 | `app.running` | bool | True while the app is running, False once it's quitting |
 
-The most useful ones are `app.cols` and `app.rows`. You'll use these ALL the time for positioning things on screen. They get measured once when you create the `App` object and stay fixed — Astralixi runs on a fixed 720p display and doesn't resize while the app is open.
+The most useful ones are `app.cols` and `app.rows`. You'll use these ALL the time for positioning things on screen. They get measured once when you create the `App` object and stay fixed — Astralixi doesn't support terminal resizing at runtime (yet).
 
 ---
 
@@ -146,7 +146,7 @@ So if you want to draw something in the top-left corner, you use col=0, row=0. I
 
 ### The 720p Reference Grid
 
-Astralixi is designed for a 720p display, which works out to roughly **213 columns x 45 rows** at the character size Astralixi uses. That's your reference — when you design your app, imagine a 213x45 grid.
+Astralixi is designed for a 720p display, which works out to roughly **213 columns x 45 rows** at the character size Astralixi uses. That's your reference — when you design your app, imagine a 720p screen and you're probably good.
 
 But don't hardcode those numbers! Always use `app.cols` and `app.rows` in your code so your layout adjusts correctly:
 
@@ -159,13 +159,13 @@ panel_col = (app.cols - panel_w) // 2   # centres the panel horizontally
 panel_col = 76   # ← never do this
 ```
 
-If you really want to design using the 720p reference coordinates and then convert, there's a `scale()` function for that. But honestly just using `app.cols` and `app.rows` directly is way simpler for most apps.
+If you really want to design using the 720p reference coordinates and then convert, there's a `scale()` function for that. But honestly just using `app.cols` and `app.rows` directly is way simpler.
 
 ---
 
 ## The Draw Function — This is the Main One
 
-Your draw function is called every single frame (30 times a second by default). It's responsible for drawing *everything* the user sees. The screen gets wiped clean before each call, so every frame you're starting from scratch.
+Your draw function is called every single frame (30 times a second by default). It's responsible for drawing *everything* the user sees. The screen gets wiped clean before each call, so every frame you're drawing from scratch.
 
 ```python
 def draw(app):
@@ -176,9 +176,9 @@ def draw(app):
 
 Some really important things to know about the draw function:
 
-**Don't try to "remember" things between frames.** Because the screen is wiped each frame, you can't just draw something once and expect it to stay there. Every frame you draw everything from scratch. If you want something to appear on screen, draw it every frame.
+**Don't try to "remember" things between frames.** Because the screen is wiped each frame, you can't just draw something once and expect it to stay there. Every frame you draw everything from scratch. Use global variables to store state (like a score or cursor position) between frames.
 
-**Keep it fast.** The draw function runs 30 times per second. If you put slow stuff in there — like reading a file, making a network request, or doing a big calculation — your app will feel laggy and gross. If you need to do heavy work in the background, use `threading.Thread` to do it in a separate thread, and then just read the result from a variable in your draw function.
+**Keep it fast.** The draw function runs 30 times per second. If you put slow stuff in there — like reading a file, making a network request, or doing a big calculation — your app will feel laggy and awful. Move that stuff into a background thread:
 
 ```python
 import threading
@@ -239,7 +239,7 @@ run(app, draw, on_key)   # pass your input function as the third argument
 
 ### No mouse support
 
-There's no mouse support at the moment. It'll be added in a future version, but even then it'll only be for scrolling — no clicking. So design your app to be 100% keyboard-driven. Arrow keys to move, Tab to switch between things, Enter to confirm, Escape to cancel. That's the pattern.
+There's no mouse support at the moment. It'll be added in a future version, but even then it'll only be for scrolling — no clicking. So design your app to be 100% keyboard-driven. Arrow keys to navigate, Tab to cycle focus, Enter to confirm, Escape to cancel or go back.
 
 ---
 
@@ -328,7 +328,7 @@ fill_region(app, col, row, width, height, bg=COLOR_BLUE)
 clear_screen(app)
 ```
 
-A quick note on `draw_box`: the `width` and `height` include the border itself. So a box of width=10 has 8 usable columns inside (the border takes up the left and right columns). Same idea for height.
+A quick note on `draw_box`: the `width` and `height` include the border itself. So a box of width=10 has 8 usable columns inside (the border takes up the left and right columns). Same idea for height — a box of height=5 has 3 usable rows inside.
 
 ### Widgets
 
@@ -372,7 +372,7 @@ draw_input(app, col, row, width=30, value=my_text, focused=False, placeholder="S
 draw_input(app, col, row, width=20, value=my_password, password=True, focused=True)
 ```
 
-Note: there's no visible cursor. When an input is focused it gets highlighted so the user knows they're typing in it. Your `on_key` function needs to handle `BACKSPACE` (to delete the last character) and `is_printable(key)` (to add characters).
+Note: there's no visible cursor. When an input is focused it gets highlighted so the user knows they're typing in it. Your `on_key` function needs to handle `BACKSPACE` (to delete the last character), printable characters (to add them), and ENTER to confirm.
 
 **Scrollable List**
 ```python
@@ -580,7 +580,7 @@ Useful if you want a specific colour combo that the default `fg`/`bg` system doe
 
 ## Running Astralixi Commands
 
-Apps can run any Astralixi command directly through the `command` object. This works for every command that exists now and any commands added in the future — there's no hardcoded list inside the API.
+Apps can run any Astralixi command directly through the `command` object. This works for every command that exists now and any commands added in the future — there's no hardcoded list inside the app. It's all dynamic.
 
 Import `command` alongside everything else:
 
@@ -590,7 +590,7 @@ from astralixi_api import App, draw_multiline, draw_status_bar, run, command
 
 ### `command.run(command_string)`
 
-Runs a command and lets its output go straight to the terminal, exactly as if the user had typed it at the Astralixi prompt. Use this when you just want to do something and don't need to read the output in your app.
+Runs a command and lets its output go straight to the terminal, exactly as if the user had typed it at the Astralixi prompt. Use this when you just want to do something and don't need to read the output back (or you don't care about it).
 
 ```python
 command.run("mkdir notes")
@@ -627,7 +627,7 @@ draw_list(app, 2, 4, width=app.cols - 4, height=10, items=lines, selected=cursor
 
 ### Important: keep it out of the draw function
 
-`command.capture()` runs a command synchronously and can be slow. **Do not call it inside your draw function** — that runs 30 times a second and needs to be fast. Instead, fetch the output in a background thread and store it in a variable that the draw function just reads:
+`command.capture()` runs a command synchronously and can be slow. **Do not call it inside your draw function** — that runs 30 times a second and needs to be fast. Instead, fetch the output in a background thread:
 
 ```python
 import threading
@@ -658,7 +658,7 @@ This way your app stays smooth while the command runs in the background.
 
 ## Drawing Shapes
 
-The API has six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also control the foreground colour, background colour, and the characters used for the fill and border.
+The API has six shape-drawing functions. They all follow the same idea: you give a **centre point** `(cx, cy)`, a **size**, and choose whether you want the shape **filled or just an outline**. You can also use custom characters and colours.
 
 ### How centre coords work
 
@@ -670,7 +670,7 @@ draw_circle(app, app.cols // 2, app.rows // 2, 6)
 
 ### Aspect-ratio correction
 
-Terminal character cells are roughly twice as tall as they are wide. Every shape function automatically compensates for this by stretching horizontally, so a "circle" looks circular and a "square" looks square — not squashed. You don't need to do anything special; it's handled internally.
+Terminal character cells are roughly twice as tall as they are wide. Every shape function automatically compensates for this by stretching horizontally, so a "circle" looks circular and a "square" looks square.
 
 ### Fill vs outline
 
@@ -796,7 +796,7 @@ python my_app.py
 
 That's it. You'll see your app running exactly as it would on-device. Test all your key bindings, make sure the layout doesn't break at different terminal sizes (try resizing your terminal window before running — remember, `app.cols` and `app.rows` are measured at startup), and verify that the exit shortcut is clearly visible.
 
-When you're done, do **NOT** include `astralixi_api.py` in your submission repo — the provides it automatically on-device.
+When you're done, do **NOT** include `astralixi_api.py` in your submission repo — the system provides it automatically on-device.
 
 ### Getting Your App onto Astralixi
 
@@ -807,8 +807,7 @@ To get your app into the official library, open a public GitHub repository with 
 ```
 my_app/
 ├── my_app.py     ← your app (single file only)
-├── README.md     ← what the app does and how to use it
-└── LICENSE       ← any open source licence you like
+└── README.md     ← what the app does and how to use it
 ```
 
 Then fork the Astralixi App Library repo and open a pull request adding your app to the `submissions/` folder, with an entry in `submissions/index.json` for your app's name, description, and category. A maintainer will review it manually for:
@@ -834,7 +833,7 @@ If something needs fixing you'll get a comment on the PR explaining what to chan
 
 **Test at 80x24.** That's a really common terminal size. Make sure your layout doesn't break or overflow at that size — some users might run your app on a regular terminal before installing it.
 
-**Use global variables for state.** Since your draw function and input function are both separate functions, you'll use `global` variables to share state between them. This is fine for Astralixi apps — see the todo app example above.
+**Use global variables for state.** Since your draw function and input function are both separate functions, you'll use `global` variables to share state between them. This is fine for Astralixi apps — simplicity is the goal.
 
 ---
 
