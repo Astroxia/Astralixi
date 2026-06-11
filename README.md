@@ -6,14 +6,9 @@ Astralixi is a lightweight TUI userspace designed for all ARM devices, built for
 - Terminal-User-Interface: A clean, fully TUI-based experience — no desktop, no clutter.
 - Space & Tech Focused: Tailored for space enthusiasts, while remaining approachable for the technically curious.
 
-## License
-Astralixi is released under the GNU General Public License with allowed changes. See the LICENSE file for more details.
-
 ## Contact
-- **Astrox Cyberspace (preffered contact):** @astr0x
-- **Project Repository:** https://github.com/Astroxia/Astralixi
-- **Astrox Youtube:** @astroxia
-- **Astrox Reddit:** @astrox_yt
+Cyberspace: @astr0x
+Youtube: @astroxia
 
 ---
 
