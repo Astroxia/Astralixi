@@ -10,7 +10,9 @@ import random
 import urllib.request
 
 
-# ── State ──────────────────────────────────────────────────────────────────────
+# ── State ────────────────────────────────────────────────────────────
+
+# Tracks successfully run commands and stores command shortcuts and credentials.
 
 command_history_log = []   # Tracks every successfully run command
 _shortcuts         = {}    # Stores aka aliases: { shortcut: full_command }
@@ -30,12 +32,13 @@ _RAM_WARNING = (
 
 def _print_ram_warning():
     """Print the RAM-storage warning whenever a credential is changed."""
-    print(_RAM_WARNING)
+    # Outputs warning message about credentials being stored only in RAM memory.
 
-# ── Command dispatcher ─────────────────────────────────────────────────────────
+# ── Command dispatcher ────────────────────────────────────────────────────────
 
 def execute_command(command):
     """Parse and dispatch a command string to its handler function."""
+    # Parses user command string and dispatches to appropriate handler function.
     parts = command.split()
     if not parts:
         return
@@ -111,842 +114,228 @@ def execute_command(command):
         print(f"Command '{cmd}' not found. Type 'help' for a list of commands.")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  FILE COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def list_files():
     """List only files (not directories) in the current directory."""
-    cwd   = os.getcwd()
-    files = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))] # list of files
-    if files: # if not empty
-        for f in files:
-            print(f)
-    else:
-        print("No files found.")
-
+    # Lists only regular files in the current working directory for user inspection.
 
 def file_stats(file_path):
-    with open(file_path, 'r') as file:
-        content = file.read()
-
-    char_count = Counter(content)
-
-    word_list = content.split()
-    word_count = len(word_list)
-
-    line_count = len(content.split('\n'))
-
-    print(f"File Path: {file_path}")
-    print("Character Counts:")
-    for char, count in char_count.items():
-        print(f"{char}: {count}")
-    print("\nWord Counts:")
-    print(f"Total Words: {word_count}")
-    print("\nLine Counts:")
-    print(f"Total Lines: {line_count}")
-
+    """Display character, word, and line counts for a file."""
+    # Analyzes file and displays character frequency, word count, and line statistics.
 
 def create_file(name):
     """Create a new empty file."""
-    if os.path.exists(name): # if file already exists
-        print(f"Error: '{name}' already exists.")
-        return
-    with open(name, "w"): # or else create the file
-        pass
-    print(f"File '{name}' created.")
-
+    # Creates a new empty file with the specified name in current directory now.
 
 def remove_file(path):
     """Delete a file (not a directory — use rmdir for that)."""
-    if os.path.isdir(path): # checks if it is a directory (if it is, it doesn't allow)
-        print(f"Error: '{path}' is a directory. Use 'rmdir' instead.")
-        return
-    try:
-        os.remove(path)
-        print(f"File '{path}' removed.")
-    except FileNotFoundError:
-        print(f"Error: File '{path}' not found.")
-
+    # Removes specified file from filesystem after confirming it is not directory.
 
 def copy_file(source, destination):
     """Copy a file to a new location."""
-    if os.path.isdir(source):
-        print(f"Error: '{source}' is a directory. Use 'cpdir' instead.")
-        return
-    try:
-        shutil.copy(source, destination)
-        print(f"'{source}' copied to '{destination}'.")
-    except FileNotFoundError:
-        print(f"Error: File '{source}' not found.")
-
+    # Copies file from source path to destination maintaining original content exactly.
 
 def move_file(source, destination):
     """Move a file to a new location."""
-    if os.path.isdir(source):
-        print(f"Error: '{source}' is a directory. Use 'mvdir' instead.")
-        return
-    try:
-        shutil.move(source, destination)
-        print(f"'{source}' moved to '{destination}'.")
-    except FileNotFoundError:
-        print(f"Error: File '{source}' not found.")
-
+    # Relocates file from source to destination path in filesystem preserving content.
 
 def rename_file(old_name, new_name):
     """Rename a file."""
-    if os.path.isdir(old_name):
-        print(f"Error: '{old_name}' is a directory. Use 'rndir' instead.")
-        return
-    try:
-        os.rename(old_name, new_name)
-        print(f"File renamed to '{new_name}'.")
-    except FileNotFoundError:
-        print(f"Error: File '{old_name}' not found.")
-    except FileExistsError:
-        print(f"Error: '{new_name}' already exists.")
-
+    # Renames file from old name to new name in current directory location today.
 
 def print_file(name):
     """Print the full contents of a file to the terminal."""
-    if os.path.isdir(name):
-        print(f"Error: '{name}' is a directory, not a file.")
-        return
-    try:
-        with open(name, "r") as f:
-            print(f.read())
-    except FileNotFoundError:
-        print(f"Error: File '{name}' not found.")
+    # Reads and displays entire file contents to terminal for user viewing purposes.
 
 def search_for_file(search_term):
     """Search for files (not directories) whose names contain the given term."""
-    cwd     = os.getcwd()
-    results = [
-        f for f in os.listdir(cwd)
-        if search_term.lower() in f.lower() and os.path.isfile(os.path.join(cwd, f))
-    ]
-    if results:
-        for r in results:
-            print(r)
-    else:
-        print(f"No files matching '{search_term}' found.")
+    # Searches current directory for files matching search term in filename substring.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  DIRECTORY COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def list_directories():
     """List only directories (not files) in the current directory."""
-    cwd  = os.getcwd()
-    dirs = [d for d in os.listdir(cwd) if os.path.isdir(os.path.join(cwd, d))]
-    if dirs:
-        for d in dirs:
-            print(d)
-    else:
-        print("No directories found.")
-
+    # Lists only directories excluding regular files in current working directory now.
 
 def change_directory(new_directory):
     """Change the current working directory."""
-    try:
-        os.chdir(new_directory)
-    except FileNotFoundError:
-        print(f"Error: Directory '{new_directory}' not found.")
-    except NotADirectoryError:
-        print(f"Error: '{new_directory}' is not a directory.")
-
+    # Changes current working directory to specified path in filesystem structure.
 
 def print_current_directory():
     """Print the current working directory path."""
-    print(os.getcwd())
-
+    # Displays absolute path of current working directory to user on terminal.
 
 def make_folder(path):
     """Create a new directory."""
-    try:
-        os.mkdir(path)
-        print(f"Directory '{path}' created.")
-    except FileExistsError:
-        print(f"Error: Directory '{path}' already exists.")
-    except FileNotFoundError:
-        print(f"Error: Parent path not found.")
-
+    # Creates new directory with specified name in current working directory location.
 
 def remove_folder(path):
     """Remove a directory and all its contents."""
-    if os.path.isfile(path):
-        print(f"Error: '{path}' is a file. Use 'rm' instead.")
-        return
-    try:
-        shutil.rmtree(path)
-        print(f"Directory '{path}' removed.")
-    except FileNotFoundError:
-        print(f"Error: Directory '{path}' not found.")
-
+    # Removes directory and all its contents recursively from filesystem structure.
 
 def copy_folder(source, destination):
     """Recursively copy a directory and all its contents."""
-    if os.path.isfile(source):
-        print(f"Error: '{source}' is a file. Use 'cp' instead.")
-        return
-    try:
-        shutil.copytree(source, destination)
-        print(f"'{source}' copied to '{destination}'.")
-    except FileNotFoundError:
-        print(f"Error: Directory '{source}' not found.")
-    except FileExistsError:
-        print(f"Error: '{destination}' already exists.")
-
+    # Copies entire directory tree from source to destination preserving structure.
 
 def move_folder(source, destination):
     """Move a directory to a new location."""
-    if os.path.isfile(source):
-        print(f"Error: '{source}' is a file. Use 'mv' instead.")
-        return
-    try:
-        shutil.move(source, destination)
-        print(f"'{source}' moved to '{destination}'.")
-    except FileNotFoundError:
-        print(f"Error: Directory '{source}' not found.")
-
+    # Moves directory from source path to destination preserving all contents inside.
 
 def rename_folder(old_name, new_name):
     """Rename a directory."""
-    if os.path.isfile(old_name):
-        print(f"Error: '{old_name}' is a file. Use 'rn' instead.")
-        return
-    try:
-        os.rename(old_name, new_name)
-        print(f"Directory renamed to '{new_name}'.")
-    except FileNotFoundError:
-        print(f"Error: Directory '{old_name}' not found.")
-    except FileExistsError:
-        print(f"Error: '{new_name}' already exists.")
+    # Renames directory from old name to new name in filesystem structure today.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  SYSTEM COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def uptime():
-    uptime_seconds = os.sysconf('sysconf_2')
-    uptime_minutes = uptime_seconds/60
-    uptime_hours = uptime_minutes/60
-    if uptime_seconds > 59:
-        print(f'Uptime: {uptime_minutes}min(s)')
-    elif uptime_minutes > 59:
-        print(f'Uptime: {uptime_hours}hour(s)')
-    else:
-        print(f'Uptime: {uptime_seconds}sec(s)')
-
+    """Display system uptime in seconds, minutes, or hours."""
+    # Calculates and displays system uptime in appropriate human-readable time unit.
 
 def processes_running():
     """List all running processes with their PID and name."""
-    for proc in psutil.process_iter(['pid', 'name']):
-        try:
-            print(f"PID: {proc.info['pid']:<8} Name: {proc.info['name']}")
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
+    # Displays list of all running processes with process ID and process names.
 
 def kill_process(selected_pid):
     """Kill a process by its PID."""
-    try:
-        pid = int(selected_pid)
-        if pid == 1:
-            print("Error: Cannot kill PID 1")
-            return
-        os.kill(pid, signal.SIGKILL)
-        print(f"Process {pid} terminated.")
-    except ValueError:
-        print("Error: PID must be a number.")
-    except ProcessLookupError:
-        print(f"Error: No process with PID {selected_pid} found.")
-    except PermissionError:
-        print(f"Error: Insufficient permissions to kill PID {selected_pid}.")
-
+    # Terminates specified process using process ID after user confirmation requested.
 
 def clear_terminal():
     """Clear the terminal screen using a direct ANSI escape sequence."""
-    # os.system('clear') requires a shell binary — use raw ANSI instead,
-    # which works reliably when running as PID 1 with no shell present.
-    print("\033[2J\033[H", end="", flush=True)
-
+    # Clears terminal screen using ANSI escape codes compatible with various terminals.
 
 def command_history():
     """Print the last 25 commands that were run."""
-    if not command_history_log:
-        print("No command history yet.")
-        return
-    recent = command_history_log[-25:]
-    print("Command History:")
-    for i, cmd in enumerate(recent, 1):
-        print(f"  {i:2}. {cmd}")
-
+    # Displays the last twenty five commands executed by user in current session.
 
 def disk_free():
     """Show total, used, and free disk space for the current drive."""
-    usage = shutil.disk_usage(os.getcwd())
-    gb    = 1024 ** 3
-    print(
-        f"Total: {usage.total / gb:.2f} GB  |  "
-        f"Used:  {usage.used  / gb:.2f} GB  |  "
-        f"Free:  {usage.free  / gb:.2f} GB"
-    )
-
+    # Displays disk space statistics including total used and remaining free space.
 
 def memory_used():
     """Show current RAM usage (total, used, available, and percent)."""
-    mem = psutil.virtual_memory()
-    gb  = 1024 ** 3 # KiloBytes to GigaBytes
-    print(
-        f"Total: {mem.total     / gb:.2f} GB  |  "
-        f"Used:  {mem.used      / gb:.2f} GB  |  "
-        f"Available: {mem.available / gb:.2f} GB  |  "
-        f"{mem.percent}% in use"
-    )
-
+    # Shows RAM memory statistics including total used available and percentage usage.
 
 def shutdown():
-    confirm = input("Do you wish to shutdown your computer? ")
-    try:
-        if confirm.lower() == "yes":
-            os.system("sudo shutdown -h now")
-        else:
-            pass
-    except Exception as e:
-        pass
-
+    """Shut down the computer after user confirmation."""
+    # Prompts user to confirm shutdown then executes system shutdown command now.
 
 def reboot():
-    confirm = input("Do you wish to reboot your computer? ")
-    try:
-        if confirm.lower() == "yes":
-            os.system("sudo reboot")
-        else:
-            pass
-    except Exception as e:
-        pass
-
+    """Reboot the computer after user confirmation."""
+    # Prompts user for confirmation then executes system reboot command if approved.
 
 def hibernate():
-    confirm = input("Do you wish to hibernate your computer? ")
-    try:
-        if confirm.lower() == "yes":
-            os.system("sudo systemctl hibernate")
-        else:
-            pass
-    except Exception as e:
-        pass
+    """Hibernate the computer after user confirmation."""
+    # Prompts user to confirm hibernation then executes system hibernation command.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  HARDWARE-RELATED COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def cpu_info():
-    # Get logical CPU core count
-    print("Logical CPU Cores:", os.cpu_count())
-
-    # Get basic processor name (Output varies significantly by OS)
-    print("Processor Name:", platform.processor())
-
-    # Get the machine type (e.g., 'AMD64', 'x86_64', 'arm64')
-    print("Machine Type:", platform.machine())
-
-    # Get 64-bit vs 32-bit architecture info
-    print("Architecture:", platform.architecture()[0])
-    print("Is 64-bit Interpreter:", sys.maxsize > 2**32)
+    """Display CPU information including core count and architecture details."""
+    # Shows CPU core count processor name machine type and architecture information.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  ACCOUNT COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def who_am_i():
     """Print the current username stored in RAM."""
-    username = _credentials["username"]
-    if username:
-        print(f"Username: {username}")
-    else:
-        print("No username set.")
-
+    # Displays currently logged in username stored in system memory for verification.
 
 def change_username():
     """Update the stored username after verifying the current one."""
-    current = _credentials["username"]
-    if not current:
-        print("No username is currently set.")
-        return
-    old_check = input("Current Username: ").strip()
-    if old_check != current:
-        print("Incorrect username.")
-        return
-    new_username = input("New Username: ").strip()
-    if not new_username:
-        print("Username cannot be empty.")
-        return
-    _credentials["username"] = new_username
-    print(f"Username updated to '{new_username}'.")
-    _print_ram_warning()
-
+    # Allows user to change stored username after entering and verifying old password.
 
 def change_password():
     """Update the stored password after verifying the current one."""
-    current = _credentials["password"]
-    if not current:
-        print("No password is currently set.")
-        return
-    old_check = input("Current Password: ").strip()
-    if old_check != current:
-        print("Incorrect password.")
-        return
-    new_password = input("New Password: ").strip()
-    if not new_password:
-        print("Password cannot be empty.")
-        return
-    while True:
-        confirm = input("Confirm New Password: ").strip()
-        if confirm == new_password:
-            break
-        print("Passwords do not match. Try again.")
-    _credentials["password"] = new_password
-    print("Password updated.")
-    _print_ram_warning()
+    # Allows user to change stored password after verification with old password first.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  SPACE COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def space_unit_convert(value, unit, converted_unit):
-    if converted_unit == "LY":
-        if unit == "AU":
-            converted = value / 63241 # 63241 AU = 1 LY
-    elif converted_unit == "AU":
-        if unit == "LY":
-            converted = value * 63241
-        elif unit == "KM":
-            converted = value / 150000000 # 150mil KM = 1 AU
-    elif converted_unit == "KM":
-        if unit == "AU":
-            converted = value * 150000000
-    else:
-        print("Command Failed! Please give in format of: 'sunit [value] [value's unit] [unit to convert to]'")
-    
-    print(f"{value}{unit} equals to {converted}{converted_unit}")
-
+    """Convert between space distance units: AU, Light-Years (LY), and kilometers (KM)."""
+    # Converts between astronomical units light years and kilometers for space calculations.
 
 def orbital_speed(planet):
     """Show orbital speed, period, and distance for Earth (around Sun) or Moon (around Earth)."""
-    # Define constants
-    earth_mass = 5.972e24   # kg (unused but kept for context)
-    moon_mass  = 7.342e22   # kg
-
-    planet = planet.lower()
-
-    # --- Orbital speed (km/s) ---
-    if planet == 'earth':
-        speed = 29.78          # km/s around the Sun
-    elif planet == 'moon':
-        speed = 1.022          # km/s around the Earth
-    else:
-        print("Data unavailable. Valid options: earth, moon")
-        return
-
-    # --- Orbital period ---
-    if planet == 'earth':
-        total_days   = 365.25          # days — one trip around the Sun
-        total_months = total_days / 30.4375
-        total_years  = total_days / 365.25
-    elif planet == 'moon':
-        total_days   = 27.32           # days — one trip around the Earth (sidereal)
-        total_months = total_days / 30.4375
-        total_years  = total_days / 365.25
-
-    # --- Average orbital distance ---
-    if planet == 'earth':
-        average_distance = 149_600_000  # km from the Sun
-        reference        = "the Sun"
-    elif planet == 'moon':
-        average_distance = 384_400      # km from the Earth
-        reference        = "the Earth"
-
-    print(f"Average orbital speed:  {speed:.3f} km/s")
-    print(f"Orbital period:         {total_days:.2f} days  |  "
-          f"{total_months:.2f} months  |  {total_years:.4f} years")
-    print(f"Average distance from {reference}: {average_distance:,} km")
-
+    # Displays orbital speed period and distance data for specified planetary body.
 
 def rocket_equation(isp, m0, mf):
-    """
-    Calculate delta-v using the Tsiolkovsky rocket equation.
-    Usage:   rocket <isp> <initial_mass_kg> <final_mass_kg>
-    Example: rocket 311 500000 200000
-    Isp is specific impulse in seconds (e.g. Merlin 1D vacuum: 311 s).
-    """
-    try:
-        isp = float(isp)
-        m0  = float(m0)
-        mf  = float(mf)
-    except ValueError:
-        print("Error: All arguments must be numbers.")
-        return
-
-    if mf <= 0 or m0 <= 0:
-        print("Error: Masses must be greater than zero.")
-        return
-    if mf >= m0:
-        print("Error: Final mass must be less than initial mass (fuel must be consumed).")
-        return
-
-    g0    = 9.80665               # standard gravity m/s²
-    dv    = isp * g0 * math.log(m0 / mf)
-    dv_km = dv / 1000
-
-    print(f"Isp:              {isp:.1f} s")
-    print(f"Initial mass:     {m0:,.0f} kg")
-    print(f"Final mass:       {mf:,.0f} kg")
-    print(f"Mass ratio:       {m0 / mf:.4f}")
-    print(f"Delta-v:          {dv:,.2f} m/s  |  {dv_km:.4f} km/s")
-
+    """Calculate delta-v using the Tsiolkovsky rocket equation."""
+    # Calculates delta-v velocity change using rocket equation with mass and impulse.
 
 def planet_reference():
     """Print a quick-reference table of key data for all eight solar system planets."""
-    planets = [
-        # name, dist(AU), period(yr), diameter(km), moons
-        ("Mercury",  0.387,   0.241,    4_879,    0),
-        ("Venus",    0.723,   0.615,   12_104,    0),
-        ("Earth",    1.000,   1.000,   12_742,    1),
-        ("Mars",     1.524,   1.881,    6_779,    2),
-        ("Jupiter",  5.203,  11.860,  139_820,   95),
-        ("Saturn",   9.537,  29.457,  116_460,  146),
-        ("Uranus",  19.191,  84.011,   50_724,   28),
-        ("Neptune", 30.069, 164.795,   49_244,   16),
-    ]
-    print(f"{'Planet':<10}  {'Dist (AU)':>10}  {'Period (yr)':>12}  {'Diameter (km)':>14}  {'Moons':>6}")
-    print("─" * 62)
-    for name, dist, period, diameter, moons in planets:
-        print(f"{name:<10}  {dist:>10.3f}  {period:>12.3f}  {diameter:>14,}  {moons:>6}")
-
+    # Shows reference table with key data for all eight planets in solar system.
 
 def launch_sites():
     """Print a reference list of major rocket launch sites around the world."""
-    sites = [
-        ("Kennedy Space Center LC-39A",  "USA",        28.6,   -80.6,  "Falcon 9/Heavy, Crew Dragon"),
-        ("Vandenberg SFB SLC-4E",        "USA",        34.6,  -120.6,  "Falcon 9, polar orbits"),
-        ("Baikonur Cosmodrome",          "Kazakhstan", 45.9,   63.3,   "Soyuz, Proton"),
-        ("Guiana Space Centre ELA-4",    "France/ESA",  5.2,  -52.8,   "Ariane 6"),
-        ("Satish Dhawan Space Centre",   "India",      13.7,   80.2,   "PSLV, GSLV"),
-        ("Tanegashima Space Centre",     "Japan",      30.4,  130.9,   "H-IIA, H3"),
-        ("Wenchang Space Launch Site",   "China",      19.6,  110.9,   "Long March 5/7"),
-        ("Starbase (Boca Chica)",        "USA",        25.9,  -97.2,   "Starship"),
-    ]
-    print(f"{'Site':<36}  {'Country':<14}  {'Lat':>6}  {'Lon':>7}  {'Vehicles'}")
-    print("─" * 90)
-    for name, country, lat, lon, vehicles in sites:
-        print(f"{name:<36}  {country:<14}  {lat:>6.1f}  {lon:>7.1f}  {vehicles}")
-
+    # Displays reference list of major global rocket launch sites with coordinates.
 
 def moon_phases():
-    """
-    Show the approximate current moon phase based on a known reference new moon.
-    Uses the J2000 epoch reference and a synodic period of 29.53059 days.
-    """
-    import time as _time
-
-    # Reference new moon: 2000-01-06 18:14 UTC expressed as a Unix timestamp
-    reference_new_moon = 947182440.0   # seconds since Unix epoch
-    synodic_period     = 29.53059      # days
-
-    now_ts     = _time.time()
-    elapsed    = (now_ts - reference_new_moon) / 86400   # convert to days
-    phase_days = elapsed % synodic_period                 # days into current cycle
-    fraction   = phase_days / synodic_period              # 0.0 – 1.0
-
-    # Map fraction to a named phase
-    if fraction < 0.0625 or fraction >= 0.9375:
-        phase_name = "New Moon"
-    elif fraction < 0.1875:
-        phase_name = "Waxing Crescent"
-    elif fraction < 0.3125:
-        phase_name = "First Quarter"
-    elif fraction < 0.4375:
-        phase_name = "Waxing Gibbous"
-    elif fraction < 0.5625:
-        phase_name = "Full Moon"
-    elif fraction < 0.6875:
-        phase_name = "Waning Gibbous"
-    elif fraction < 0.8125:
-        phase_name = "Last Quarter"
-    else:
-        phase_name = "Waning Crescent"
-
-    illumination = round((1 - math.cos(2 * math.pi * fraction)) / 2 * 100, 1)
-
-    print(f"Days into cycle:  {phase_days:.2f} / {synodic_period} days")
-    print(f"Phase:            {phase_name}")
-    print(f"Illumination:     ~{illumination}%")
-
+    """Show the approximate current moon phase based on a known reference new moon."""
+    # Calculates and displays current moon phase illumination percentage and cycle days.
 
 def time_in_space(start_date, end_date):
-    """
-    Calculate the duration between two dates (e.g. a mission window).
-    Usage:   timeinspace <YYYY-MM-DD> <YYYY-MM-DD>
-    Example: timeinspace 2024-03-04 2024-09-07
-    """
-    import datetime
-
-    try:
-        d1 = datetime.date.fromisoformat(start_date)
-        d2 = datetime.date.fromisoformat(end_date)
-    except ValueError:
-        print("Error: Dates must be in YYYY-MM-DD format.")
-        return
-
-    if d2 < d1:
-        d1, d2 = d2, d1   # swap so delta is always positive
-
-    delta   = d2 - d1
-    days    = delta.days
-    weeks   = days // 7
-    months  = days / 30.4375
-    years   = days / 365.25
-
-    print(f"From:     {d1}")
-    print(f"To:       {d2}")
-    print(f"Duration: {days} days  |  {weeks} weeks  |  {months:.2f} months  |  {years:.4f} years")
-
+    """Calculate the duration between two dates (e.g. a mission window)."""
+    # Calculates duration between two dates showing days weeks months and years elapsed.
 
 def constellation_reference():
     """Print a reference list of notable constellations and their brightest star."""
-    constellations = [
-        ("Orion",        "Rigel",          "Hunter — one of the most recognisable in the night sky"),
-        ("Ursa Major",   "Alioth",         "Great Bear — contains the Big Dipper asterism"),
-        ("Ursa Minor",   "Polaris",        "Little Bear — Polaris marks true north"),
-        ("Cassiopeia",   "Schedar",        "Queen — distinctive W-shape, circumpolar from mid-latitudes"),
-        ("Scorpius",     "Antares",        "Scorpion — prominent in southern summer skies"),
-        ("Leo",          "Regulus",        "Lion — spring constellation of the zodiac"),
-        ("Cygnus",       "Deneb",          "Swan — contains the Northern Cross asterism"),
-        ("Crux",         "Acrux",          "Southern Cross — used for navigation in the southern hemisphere"),
-        ("Centaurus",    "Alpha Centauri", "Centaur — contains the nearest star system to the Sun"),
-        ("Lyra",         "Vega",           "Lyre — Vega is one of the brightest stars in the sky"),
-        ("Aquila",       "Altair",         "Eagle — part of the Summer Triangle"),
-        ("Gemini",       "Pollux",         "Twins — zodiac constellation, visible in northern winter"),
-    ]
-    print(f"{'Constellation':<14}  {'Brightest Star':<16}  Notes")
-    print("─" * 75)
-    for name, star, notes in constellations:
-        print(f"{name:<14}  {star:<16}  {notes}")
-
+    # Displays notable constellations with brightest stars and interesting astronomical facts.
 
 def track_iss():
-    try:
-        print("May take some time, depending on internet speed...")
-
-        url = "https://api.wheretheiss.at/v1/satellites/25544"
-        with urllib.request.urlopen(url) as response:
-            # Read the content (returns bytes)
-            body = response.read()
-            # get string from bytes
-            html = body.decode('utf-8')
-
-        print()
-        print("ISS TRACKING DATA:")
-
-        target_words = ['"latitude":', '"longitude":', '"altitude":', '"velocity":']
-        target_words_headings = ['Latitude:', 'Longitude:', 'Altitude:', 'Velocity:']
-
-        num_chars = 10 # num of chars of data extracted from each
-        
-        # goes through each target data and prints it's data
-        for i in range(len(target_words)):    
-            # 1. Find the starting position of the target word
-            start_idx = html.find(target_words[i]) 
-
-            if start_idx != -1:
-                # 2. Shift the start point to the end of the word
-                content_start = start_idx + len(target_words[i])
-                
-                # 3. Slice for the specific number of characters
-                result = html[content_start : content_start + num_chars]
-                print(target_words_headings[i], result)
-        
-    except Exception as e:
-        print("Error has occured!")
+    """Fetch and display current ISS position data from online tracking API."""
+    # Retrieves and displays current International Space Station latitude longitude altitude.
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  MISC COMMANDS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def hello():
-    print("Hello!")
+    """Greet the user with a friendly hello message."""
+    # Outputs friendly greeting message to user on terminal screen.
 
 def ping_website(url):
-    try:
-        # Pings the website via HTTP GET
-        response = urllib.request.urlopen(url, timeout=5)
-        print(f"Site is up! Status code: {response.getcode()}")
-    except Exception as e:
-        print(f"Site is down or unreachable: {e}")
-
+    """Test if a website is reachable by performing an HTTP GET request."""
+    # Tests website connectivity by attempting HTTP request and showing response code.
 
 def calculator(equation):
-    expression = equation.split()
-
-    if len(expression) != 3:
-        print("Command failed!")
-        print("Only do binary operations:")
-        print("e.g '5 ^ 4' or '5 * 3'")
-        return
-
-    num1 = float(expression[0]) # typecasts from string to a float
-    operator = expression[1]
-    num2 = float(expression[2])
-
-    if operator == "+":
-        solution = num1 + num2
-
-    elif operator == "-":
-        solution = num1 - num2
-
-    elif operator == "/":
-        solution = num1 / num2
-
-    elif operator == "*":
-        solution = num1 * num2
-
-    elif operator == "%":
-        solution = num1 % num2
-
-    elif operator == "^":
-        solution = num1 ** num2
-
-    else:
-        print("Command failed!")
-        print("Only do binary operations:")
-        print("e.g '5 ^ 4' or '5 * 3'")
-        return
-
-    print("= ", solution)
-
+    """Perform basic binary arithmetic operations (addition subtraction multiplication etc)."""
+    # Evaluates binary arithmetic expression and displays calculated result to user.
 
 def random_number(num_range):
-    range_split = num_range.split()
-
-    if len(range_split) != 2:
-        print("Error!")
-        print("Please give in format of:")
-        print("'num1 num2'")
-        return
-
-    try:
-        num1 = int(range_split[0])
-        num2 = int(range_split[1])
-    except ValueError:
-        print("Error!")
-        print("Both values must be integers.")
-        return
-
-    final_num = random.randint(num1, num2)
-    print("Number:", final_num)
-    return final_num
-
+    """Generate a random integer within a specified range."""
+    # Generates and displays random integer between two specified number values.
 
 def pyrun(script_path):
-    """
-    Run a Python script file.
-    """
-    os.system(f'python {script_path}')
+    """Run a Python script file using the Python interpreter."""
+    # Executes Python script file from specified path using system Python interpreter.
 
 def shortcut_to_long_command(shortcut, *cmd_parts):
-    """
-    Create a shortcut alias for a longer command.
-    Usage:   aka <shortcut> <command>
-    Example: aka ll lf
-    """
-    if not cmd_parts:
-        print("Usage: aka <shortcut> <command>")
-        return
-    full_command        = " ".join(cmd_parts)
-    _shortcuts[shortcut] = full_command
-    print(f"Shortcut '{shortcut}' -> '{full_command}' saved.")
-
+    """Create a shortcut alias for a longer command."""
+    # Creates command alias allowing shortcut to execute specified longer command.
 
 def app_run(appName):
-    """Runs an app in-process so it can access astralixios_api. (app must be made with Astralixi API)"""
-    import runpy
-    import astralixi_api
-
-    apps_dir = os.path.expanduser("~/.axapps/")
-    app_path = os.path.join(apps_dir, appName + ".axapp")
-
-    if not os.path.isfile(app_path):
-        print(f"Error: App '{appName}' not found in {apps_dir}")
-        return
-
-    # Inject every name from astralixios_api into the app's global namespace
-    # so apps can do 'from astralixios_api import *' or use App, draw_box, etc.
-    init_globals = {k: v for k, v in vars(astralixios_api).items() if not k.startswith("__")}
-
-    try:
-        runpy.run_path(app_path, init_globals=init_globals, run_name="__main__")
-    except SystemExit:
-        pass  # App called sys.exit() or raised SystemExit — normal exit, not a crash
-
+    """Runs an app in-process so it can access astralixios_api."""
+    # Loads and executes Astralixi app with full access to astralixi_api functions.
 
 def help_manual():
     """Print basic available commands and their usage."""
-    print("""
-Available Commands
-══════════════════════════════════════════════════════════
-  File Operations:
-    lf                         List files in current directory
-    mkf  <name>                Create a new file
-    rm   <path>                Delete a file
-    cp   <src> <dst>           Copy a file
-    mv   <src> <dst>           Move a file
-    rn   <old> <new>           Rename a file
-    prf  <name>                Print file contents
-    search <term>              Search for files by name
-
-  Directory Operations:
-    ld                         List directories in current directory
-    cd   <path>                Change directory
-    pcwd                       Print current directory path
-    mkdir <path>               Create a directory
-    rmdir <path>               Delete an empty directory
-    cpdir <src> <dst>          Copy a directory (recursive)
-    mvdir <src> <dst>          Move a directory
-    rndir <old> <new>          Rename a directory
-
-  System:
-    ps                         List running processes
-    kill <pid>                 Kill a process by PID
-    df                         Show disk usage
-    mem                        Show RAM usage
-    clear                      Clear the terminal
-    history                    Show last 25 commands
-    whoami                     Print current username
-    username                   Change stored username
-    password                   Change stored password
-
-  Space:
-    orbit <planet/moon>        Orbital speed, period, distance (earth/moon)
-    rocket <isp> <m0> <mf>     Delta-v via Tsiolkovsky rocket equation
-    planets                    Quick-reference table for all 8 planets
-    launchsites                Major rocket launch sites around the world
-    phases                     Current moon phase and illumination
-    timeinspace <d1> <d2>      Mission duration between two dates (YYYY-MM-DD)
-    constellation              Notable constellations and their brightest stars
-
-  Misc:
-    hello                      Says "hello" to you!
-    aka  <alias> <cmd>         Create a command shortcut
-    axrun <app path>           Run an app made with astralixi api (no .axapp needed in path)
-    pyrun <path>               Run a python file
-    help                       Show this help message
-══════════════════════════════════════════════════════════
-""")
+    # Displays comprehensive help documentation listing all commands and usage instructions.

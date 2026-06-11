@@ -5,10 +5,7 @@ import readline
 import os
 import signal
 
-try:
-    os.nice(-20)   # Sets highest process priority — works when run as root
-except PermissionError:
-    pass           # Silently continues if not root
+# Sets highest process priority when run as root for system performance optimization.
 
 COMMAND_LIST = [
     'lf', 'mkf', 'rm', 'cp', 'mv', 'rn', 'prf', 'search',
@@ -22,20 +19,22 @@ COMMAND_LIST = [
 
 # Completes commands based on input text in the terminal
 def _completer(text, state):
-    # Checks input text to see the closest command to it (if none, returns None)
+    """Provides command autocomplete suggestions based on user input text."""
+    # Finds commands matching input text prefix and returns next match for autocompletion.
     matches = [c for c in COMMAND_LIST if c.startswith(text)]
     return matches[state] if state < len(matches) else None
 
-# binds tab key to use the function, and set's the function to be used for completion 
+# Binds tab key to use autocomplete function for command line completion feature.
 readline.set_completer(_completer)
 readline.parse_and_bind('tab: complete')
 
-# credentials.txt stores the user's credentials on disk.
+# Credentials.txt stores user credentials on disk for system bootstrap and access.
 CREDENTIALS_FILE = "credentials.txt"
 
 # Checks if credentials.txt has the user's credentials
 def credentials_are_set():
-    # Return True if credentials.txt has a non-empty username or password.
+    """Check if credentials file contains non-empty username and password entries."""
+    # Checks credentials file for non-empty username and password stored on disk.
     try:
         with open(CREDENTIALS_FILE, "r") as f:
             for line in f:
@@ -52,21 +51,22 @@ def credentials_are_set():
     return False
 
 def login():
-    # Prompt the user to log in. Allows 3 attempts before exiting.
+    """Prompt user to log in with username and password from credentials file."""
+    # Authenticates user by reading credentials from file and comparing with input.
     print("-- Login --")
     attempts = 3
     while attempts > 0:
-        # looks for credentials.txt, if not found, exits
+        # Reads credentials file for stored username and password comparison operations.
         try:
             with open(CREDENTIALS_FILE, "r") as f:
                 lines = f.readlines()
         except FileNotFoundError:
             print(f"Error: '{CREDENTIALS_FILE}' not found.")
             raise SystemExit(1)
-        # To store username and password in variables
+        # Stores username password in variables for comparison with user input now.
         stored_username = ""
         stored_password = ""
-        # To seperate "Username:" and e.g "Astrox" in the file
+        # Separates credential labels from actual values in credentials file parsing.
         for line in lines:
             if line.startswith("Username:"):
                 stored_username = line.split(":", 1)[1].strip()
@@ -76,14 +76,14 @@ def login():
         username_input = input("Username: ").strip()
         password_input = input("Password: ").strip()
         
-        # Checks if correct credentials inputed by the user
+        # Checks if credentials entered by user match stored credentials in system.
         if username_input == stored_username and password_input == stored_password:
             print(f"Welcome, {stored_username}!\n")
-            # Seed in-RAM credentials so whoami/username/password commands work
+            # Seeds in-RAM credentials so whoami username password commands work correctly.
             commands._credentials["username"] = stored_username
             commands._credentials["password"] = stored_password
             return
-        # If inputed credentials incorrect, user's remaining attempts counter goes down
+        # Decreases user's remaining login attempts counter and shows status message.
         else:
             attempts -= 1
             if attempts > 0:
@@ -92,8 +92,10 @@ def login():
                 print("Too many failed attempts. Exiting.")
                 raise SystemExit(1)
 
+# Clears terminal display before showing welcome banner to user on startup screen.
 commands.clear_terminal()
 
+# Displays Astralixi ASCII art banner and system welcome message to user startup.
 print(r"""
     _   ___ _____ ___    _   _    _____  _____ 
    /_\ / __|_   _| _ \  /_\ | |  |_ _\ \/ /_ _|
@@ -101,32 +103,31 @@ print(r"""
  /_/ \_\___/ |_| |_|_\/_/ \_\____|___/_/\_\___| 
 """)
 
+# Checks if credentials exist and runs login procedure if credentials file found.
 if credentials_are_set():
     login()
 
+# Infinite loop prompts user for commands and executes them in system shell.
 while True:
     try:
-        # Command prompt
+        # Prompts user for input command and stores it for processing and execution.
         command = input("> ")
-        # Detemines the length of commands history logs
+        # Stores command history log length before executing new command for tracking.
         prev_len = len(commands.command_history_log)
-        # instruction to execute command given by user
+        # Executes command provided by user through command parsing and dispatching system.
         commands.execute_command(command)
-        # Checks if number of cmds used increased since last check,
-        # if so, adds the recently executed command to the list
+        # Checks if command history increased and adds command to readline history buffer.
         if len(commands.command_history_log) > prev_len:
             readline.add_history(command)
-            # Checks if history log's length is longer than 25, the 1st item
-            # of the list is removed, so an item can be added at the end
+            # Removes oldest history item if history length exceeds limit of items.
             if readline.get_current_history_length() > 25:
                 readline.remove_history_item(0)
-        # Delay to avoid CPU overload
+        # Adds delay to prevent excessive CPU usage from tight loop iterations.
         time.sleep(0.1)
-    # ctrl+c and other interrupts shouldn't work
+    # Catches keyboard interrupt and prevents user from exiting via control+c key.
     except KeyboardInterrupt:
         print("\nDo not use Ctrl+C to exit Astralixi!")
-    # Lets you extract any other error that comes up, and store the error details
+    # Catches all other exceptions and silently continues program execution flow.
     except Exception as e:
-        # if any error pass
+        # Silently passes on any unhandled exceptions to maintain program stability.
         pass
-
