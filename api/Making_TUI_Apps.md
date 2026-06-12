@@ -886,4 +886,4 @@ If something needs fixing you'll get a comment on the PR explaining what to chan
 
 ---
 
-*Astralixi App Developer Documentation v10-06-2026*
+*Astralixi App Developer Documentation v12-06-2026*
