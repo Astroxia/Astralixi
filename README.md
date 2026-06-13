@@ -35,8 +35,8 @@ You can also peek at the function stubs and imports in the codebase to understan
 
 ## ⚠️ End of Life Notice
 
-**Astralixi for PicoCalc has reached End of Life and is no longer actively maintained.**
+**Astralixi for PicoCalc (versions with Pi Pico) has reached End of Life and is no longer actively maintained.**
 
-A new version of Astralixi is in development (and/or has been released). This new iteration is written primarily in Python and is planned to support all ARM 32-bit and 64-bit devices.
+A new version of Astralixi is in development (and/or has been released). This new iteration is written primarily in Python and is planned to support all ARM 32-bit and 64-bit devices that are capable enough.
 
 ---
