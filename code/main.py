@@ -12,13 +12,16 @@ except PermissionError:
     pass
 
 COMMAND_LIST = [
-    'lf', 'wc', 'mkf', 'rm', 'cp', 'mv', 'rn', 'prf', 'search',
+    'lf', 'lfh', 'wc', 'mkf', 'rm', 'cp', 'mv', 'rn', 'prf', 'search', 'peek',
     'ld', 'cd', 'pcwd', 'mkdir', 'rmdir', 'cpdir', 'mvdir', 'rndir',
     'ps', 'kill', 'df', 'mem', 'clear', 'history', 'whoami', 'username',
     'password', 'pyrun', 'uptime', 'reboot', 'shutdown', 'hibernate', 'cpuinfo',
+    'wifi', 'time', 'date', 'pwr',
     'orbit', 'rocket', 'planets', 'launchsites', 'phases', 'timeinspace',
-    'constellation', 'trackiss', 'sunit',
-    'aka', 'help', 'axrun', 'hello', 'beacon', 'calc', 'rng',
+    'constellation', 'trackiss', 'sunit', 'lunarcrater', 'telemetry',
+    'sol', 'gravweigh', 'crew', 'quote', 'captain-log',
+    'aka', 'help', 'axrun', 'hello', 'beacon', 'calc', 'rng', 'dice', 
+    'tally', 'countdown', 'clip', 'genpass', 
 ]
 
 def _completer(text, state):
