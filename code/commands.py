@@ -22,7 +22,7 @@ from collections import Counter
 
 command_history_log = []   # Tracks every successfully run command
 _shortcuts         = {}    # Stores aka aliases: { shortcut: full_command }
-_clipboard_text    = ""    # Used by the clip command
+_clipboard_text    = ""    # Used by the clip command as a custom clipboard
 
 # Credentials are stored in RAM only - they are NOT persisted to disk.
 # Populated at startup by main.py reading credentials.txt (legacy bootstrap),
