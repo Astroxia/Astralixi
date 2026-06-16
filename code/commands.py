@@ -7,15 +7,22 @@ import math
 import psutil
 import platform
 import random
+import time
 import urllib.request
+import datetime
+import tkinter as tk
+import json
+import tempfile
+import string
+import secrets
+from collections import Counter
 
 
-# ── State ────────────────────────────────────────────────────────────
-
-# Tracks successfully run commands and stores command shortcuts and credentials.
+# ── State ──────────────────────────────────────────────────────────────────────
 
 command_history_log = []   # Tracks every successfully run command
 _shortcuts         = {}    # Stores aka aliases: { shortcut: full_command }
+_clipboard_text    = ""    # Used by the clip command
 
 # Credentials are stored in RAM only - they are NOT persisted to disk.
 # Populated at startup by main.py reading credentials.txt (legacy bootstrap),
@@ -30,15 +37,27 @@ _RAM_WARNING = (
     "[i] Permanent credential storage is coming in a future version of Astralixi OS."
 )
 
+time_string ="1200"
+date = "01012000"
+
 def _print_ram_warning():
     """Print the RAM-storage warning whenever a credential is changed."""
-    # Outputs warning message about credentials being stored only in RAM memory.
+    print(_RAM_WARNING)
 
-# ── Command dispatcher ────────────────────────────────────────────────────────
+def set_clipboard_text(text):
+    """Store text for Ctrl+V pasting."""
+    global _clipboard_text
+    _clipboard_text = text if text is not None else ""
+
+def get_clipboard_text():
+    """Return the stored clipboard text."""
+    return _clipboard_text
+
+
+# ── Command dispatcher ─────────────────────────────────────────────────────────
 
 def execute_command(command):
     """Parse and dispatch a command string to its handler function."""
-    # Parses user command string and dispatches to appropriate handler function.
     parts = command.split()
     if not parts:
         return
@@ -47,6 +66,7 @@ def execute_command(command):
     COMMANDS = {
         # Files
         'lf':     list_files,
+        'lfh':    list_hidden_files, 
         'wc':     file_stats,
         'mkf':    create_file,
         'rm':     remove_file,
@@ -55,6 +75,8 @@ def execute_command(command):
         'rn':     rename_file,
         'prf':    print_file,
         'search': search_for_file,
+        'peek':   peek_file_content,
+
         # Directories
         'ld':     list_directories,
         'cd':     change_directory,
@@ -64,6 +86,7 @@ def execute_command(command):
         'cpdir':  copy_folder,
         'mvdir':  move_folder,
         'rndir':  rename_folder,
+
         # System
         'ps':        processes_running,
         'kill':      kill_process,
@@ -74,10 +97,16 @@ def execute_command(command):
         'whoami':    who_am_i,
         'username':  change_username,
         'password':  change_password,
-        'uptime':    uptime, 
-        'reboot':    reboot, 
-        'shutdown':  shutdown, 
-        'hibernate': hibernate,  
+        'uptime':    uptime,
+        'reboot':    reboot,
+        'shutdown':  shutdown,
+        'hibernate': hibernate,
+        'cpuinfo':   cpu_info,
+        'wifi':      wifi_tools, 
+        'time':      time_tools,
+        'date':      date_tools,
+        'pwr':       battery_percentage,
+
         # Space
         'orbit':         orbital_speed,
         'rocket':        rocket_equation,
@@ -87,19 +116,29 @@ def execute_command(command):
         'timeinspace':   time_in_space,
         'constellation': constellation_reference,
         'trackiss':      track_iss,
-        'sunit':         space_unit_convert, 
-        # Hardware
-        'cpuinfo':      cpu_info,
+        'sunit':         space_unit_convert,
+        'lunarcrater':   moon_craters, 
+        'telemetry':     fake_telemetry_sim,
+        'sol':           earthday_marssol,
+        'gravweigh':     weight_calculator,
+        'crew':          random_crew_profiles,
+        'quote':         random_space_quote,
+        'captain-log':   journal_writing,
+
         # Misc
-        'aka':         shortcut_to_long_command,
-        'help':        help_manual,
-        'axrun':       app_run,
-        'hello':       hello,
-        'pyrun':       pyrun,
-        # 'clip':        clip, # not implemented (copies cmd's output to clipboard)
-        'beacon':      ping_website, 
-        'calc':        calculator,
-        'rng':         random_number, 
+        'aka':       shortcut_to_long_command,
+        'help':      help_manual,
+        'axrun':     app_run,
+        'hello':     hello,
+        'pyrun':     pyrun,
+        'tally':     tally_tool,
+        'countdown': countdown_clock,
+        'clip':      clip, 
+        'genpass':   random_password_gen,
+        'beacon':    ping_website,
+        'calc':      calculator,
+        'rng':       random_number,
+        'dice':      dice_roller,
     }
 
     if cmd in COMMANDS:
@@ -114,228 +153,300 @@ def execute_command(command):
         print(f"Command '{cmd}' not found. Type 'help' for a list of commands.")
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════��═══════════════════════════════════════════════════════════════════
 #  FILE COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def list_files():
     """List only files (not directories) in the current directory."""
-    # Lists only regular files in the current working directory for user inspection.
+    pass
+
+def list_hidden_files():
+    """List only hidden files in the current directory."""
+    pass
 
 def file_stats(file_path):
     """Display character, word, and line counts for a file."""
-    # Analyzes file and displays character frequency, word count, and line statistics.
+    pass
 
 def create_file(name):
     """Create a new empty file."""
-    # Creates a new empty file with the specified name in current directory now.
+    pass
 
 def remove_file(path):
     """Delete a file (not a directory — use rmdir for that)."""
-    # Removes specified file from filesystem after confirming it is not directory.
+    pass
 
 def copy_file(source, destination):
     """Copy a file to a new location."""
-    # Copies file from source path to destination maintaining original content exactly.
+    pass
 
 def move_file(source, destination):
     """Move a file to a new location."""
-    # Relocates file from source to destination path in filesystem preserving content.
+    pass
 
 def rename_file(old_name, new_name):
     """Rename a file."""
-    # Renames file from old name to new name in current directory location today.
+    pass
 
 def print_file(name):
     """Print the full contents of a file to the terminal."""
-    # Reads and displays entire file contents to terminal for user viewing purposes.
+    pass
+
+def peek_file_content(name):
+    """Print the first 5 and last 5 lines of a file."""
+    pass
 
 def search_for_file(search_term):
     """Search for files (not directories) whose names contain the given term."""
-    # Searches current directory for files matching search term in filename substring.
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  DIRECTORY COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def list_directories():
     """List only directories (not files) in the current directory."""
-    # Lists only directories excluding regular files in current working directory now.
+    pass
 
 def change_directory(new_directory):
     """Change the current working directory."""
-    # Changes current working directory to specified path in filesystem structure.
+    pass
 
 def print_current_directory():
     """Print the current working directory path."""
-    # Displays absolute path of current working directory to user on terminal.
+    pass
 
 def make_folder(path):
     """Create a new directory."""
-    # Creates new directory with specified name in current working directory location.
+    pass
 
 def remove_folder(path):
     """Remove a directory and all its contents."""
-    # Removes directory and all its contents recursively from filesystem structure.
+    pass
 
 def copy_folder(source, destination):
     """Recursively copy a directory and all its contents."""
-    # Copies entire directory tree from source to destination preserving structure.
+    pass
 
 def move_folder(source, destination):
     """Move a directory to a new location."""
-    # Moves directory from source path to destination preserving all contents inside.
+    pass
 
 def rename_folder(old_name, new_name):
     """Rename a directory."""
-    # Renames directory from old name to new name in filesystem structure today.
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  SYSTEM COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def uptime():
     """Display system uptime in seconds, minutes, or hours."""
-    # Calculates and displays system uptime in appropriate human-readable time unit.
+    pass
 
 def processes_running():
     """List all running processes with their PID and name."""
-    # Displays list of all running processes with process ID and process names.
+    pass
 
 def kill_process(selected_pid):
     """Kill a process by its PID."""
-    # Terminates specified process using process ID after user confirmation requested.
+    pass
 
 def clear_terminal():
     """Clear the terminal screen using a direct ANSI escape sequence."""
-    # Clears terminal screen using ANSI escape codes compatible with various terminals.
+    print("\033[2J\033[H", end="", flush=True)
 
 def command_history():
     """Print the last 25 commands that were run."""
-    # Displays the last twenty five commands executed by user in current session.
+    pass
 
 def disk_free():
     """Show total, used, and free disk space for the current drive."""
-    # Displays disk space statistics including total used and remaining free space.
+    pass
 
 def memory_used():
     """Show current RAM usage (total, used, available, and percent)."""
-    # Shows RAM memory statistics including total used available and percentage usage.
+    pass
 
 def shutdown():
     """Shut down the computer after user confirmation."""
-    # Prompts user to confirm shutdown then executes system shutdown command now.
+    pass
 
 def reboot():
     """Reboot the computer after user confirmation."""
-    # Prompts user for confirmation then executes system reboot command if approved.
+    pass
 
 def hibernate():
     """Hibernate the computer after user confirmation."""
-    # Prompts user to confirm hibernation then executes system hibernation command.
+    pass
+
+def wifi_tools(action):
+    """Wi-Fi helper command with connect, disconnect, scan, enable, disable actions."""
+    pass
+
+def time_tools(action):
+    """Manages system time with set and display actions for user tracking."""
+    pass
+
+def date_tools(action):
+    """Manages system date with set and display actions for user tracking."""
+    pass
+
+def battery_percentage():
+    """Display current battery percentage from system power supply."""
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  HARDWARE-RELATED COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def cpu_info():
     """Display CPU information including core count and architecture details."""
-    # Shows CPU core count processor name machine type and architecture information.
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  ACCOUNT COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def who_am_i():
     """Print the current username stored in RAM."""
-    # Displays currently logged in username stored in system memory for verification.
+    pass
 
 def change_username():
     """Update the stored username after verifying the current one."""
-    # Allows user to change stored username after entering and verifying old password.
+    pass
 
 def change_password():
     """Update the stored password after verifying the current one."""
-    # Allows user to change stored password after verification with old password first.
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  SPACE COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def space_unit_convert(value, unit, converted_unit):
     """Convert between space distance units: AU, Light-Years (LY), and kilometers (KM)."""
-    # Converts between astronomical units light years and kilometers for space calculations.
+    pass
 
 def orbital_speed(planet):
     """Show orbital speed, period, and distance for Earth (around Sun) or Moon (around Earth)."""
-    # Displays orbital speed period and distance data for specified planetary body.
+    pass
 
 def rocket_equation(isp, m0, mf):
     """Calculate delta-v using the Tsiolkovsky rocket equation."""
-    # Calculates delta-v velocity change using rocket equation with mass and impulse.
+    pass
 
 def planet_reference():
     """Print a quick-reference table of key data for all eight solar system planets."""
-    # Shows reference table with key data for all eight planets in solar system.
+    pass
 
 def launch_sites():
     """Print a reference list of major rocket launch sites around the world."""
-    # Displays reference list of major global rocket launch sites with coordinates.
+    pass
 
 def moon_phases():
     """Show the approximate current moon phase based on a known reference new moon."""
-    # Calculates and displays current moon phase illumination percentage and cycle days.
+    pass
 
 def time_in_space(start_date, end_date):
     """Calculate the duration between two dates (e.g. a mission window)."""
-    # Calculates duration between two dates showing days weeks months and years elapsed.
+    pass
 
 def constellation_reference():
     """Print a reference list of notable constellations and their brightest star."""
-    # Displays notable constellations with brightest stars and interesting astronomical facts.
+    pass
 
 def track_iss():
     """Fetch and display current ISS position data from online tracking API."""
-    # Retrieves and displays current International Space Station latitude longitude altitude.
+    pass
+
+def moon_craters():
+    """Print popular moon craters with locations and descriptions in a table."""
+    pass
+
+def fake_telemetry_sim():
+    """Simulates rocket launch telemetry with countdown and exponential altitude calculations."""
+    pass
+
+def earthday_marssol(numOfEarthDays):
+    """Converts Earth days to Mars sols using conversion factor for mission planning."""
+    pass
+
+def weight_calculator(mass, body):
+    """Calculates object weight on specified celestial body given mass in kilograms."""
+    pass
+
+def random_crew_profiles():
+    """Display a random astronaut or cosmonaut profile with biographical information."""
+    pass
+
+def random_space_quote():
+    """Display a random inspirational quote related to space exploration and discovery."""
+    pass
+
+def journal_writing(note):
+    """Write captain's log entry to file with word limit enforced for mission logs."""
+    pass
 
 
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  MISC COMMANDS
-# ════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 def hello():
     """Greet the user with a friendly hello message."""
-    # Outputs friendly greeting message to user on terminal screen.
+    pass
 
 def ping_website(url):
     """Test if a website is reachable by performing an HTTP GET request."""
-    # Tests website connectivity by attempting HTTP request and showing response code.
+    pass
 
 def calculator(equation):
     """Perform basic binary arithmetic operations (addition subtraction multiplication etc)."""
-    # Evaluates binary arithmetic expression and displays calculated result to user.
+    pass
 
 def random_number(num_range):
     """Generate a random integer within a specified range."""
-    # Generates and displays random integer between two specified number values.
+    pass
 
 def pyrun(script_path):
     """Run a Python script file using the Python interpreter."""
-    # Executes Python script file from specified path using system Python interpreter.
+    pass
 
 def shortcut_to_long_command(shortcut, *cmd_parts):
     """Create a shortcut alias for a longer command."""
-    # Creates command alias allowing shortcut to execute specified longer command.
+    pass
 
 def app_run(appName):
     """Runs an app in-process so it can access astralixios_api."""
-    # Loads and executes Astralixi app with full access to astralixi_api functions.
+    pass
+
+def clip(command_name, *args):
+    """Capture the output of a command and store it for Ctrl+V paste."""
+    pass
+
+def countdown_clock(seconds):
+    """Count down from specified seconds to zero with real-time display updates."""
+    pass
+
+def tally_tool():
+    """Interactive tally counter incremented by enter key and exited with q."""
+    pass
+
+def random_password_gen(length):
+    """Generate secure random password and append to AstralixiLocker file."""
+    pass
+
+def dice_roller(sides, dice):
+    """Roll specified number of dice with given sides and display individual results."""
+    pass
 
 def help_manual():
     """Print basic available commands and their usage."""
-    # Displays comprehensive help documentation listing all commands and usage instructions.
+    pass
