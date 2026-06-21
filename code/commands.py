@@ -159,7 +159,14 @@ def execute_command(command):
 
 def list_files():
     """List only files (not directories) in the current directory."""
-    pass
+    cwd = os.getcwd()
+    files = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))]
+    if files:
+        for f in files:
+            print(f)
+    else:
+        print("No files found.")
+
 
 def list_hidden_files():
     """List only hidden files in the current directory."""
@@ -232,7 +239,15 @@ def copy_folder(source, destination):
 
 def move_folder(source, destination):
     """Move a directory to a new location."""
-    pass
+    if os.path.isfile(source):
+        print(f"Error: '{source}' is a file. Use 'mv' instead.")
+        return
+    try:
+        shutil.move(source, destination)
+        print(f"'{source}' moved to '{destination}'.")
+    except FileNotFoundError:
+        print(f"Error: Directory '{source}' not found.")
+
 
 def rename_folder(old_name, new_name):
     """Rename a directory."""
@@ -269,7 +284,15 @@ def disk_free():
 
 def memory_used():
     """Show current RAM usage (total, used, available, and percent)."""
-    pass
+    mem = psutil.virtual_memory()
+    gb = 1024 ** 3
+    print(
+        f"Total: {mem.total / gb:.2f} GB  |  "
+        f"Used:  {mem.used / gb:.2f} GB  |  "
+        f"Available: {mem.available / gb:.2f} GB  |  "
+        f"{mem.percent}% in use"
+    )
+
 
 def shutdown():
     """Shut down the computer after user confirmation."""
@@ -305,8 +328,11 @@ def battery_percentage():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def cpu_info():
-    """Display CPU information including core count and architecture details."""
-    pass
+    print("Logical CPU Cores:", os.cpu_count())
+    print("Processor Name:", platform.processor())
+    print("Machine Type:", platform.machine())
+    print("Architecture:", platform.architecture()[0])
+    print("Is 64-bit Interpreter:", sys.maxsize > 2**32)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -319,7 +345,22 @@ def who_am_i():
 
 def change_username():
     """Update the stored username after verifying the current one."""
-    pass
+    current = _credentials["username"]
+    if not current:
+        print("No username is currently set.")
+        return
+    old_check = input("Current Username: ").strip()
+    if old_check != current:
+        print("Incorrect username.")
+        return
+    new_username = input("New Username: ").strip()
+    if not new_username:
+        print("Username cannot be empty.")
+        return
+    _credentials["username"] = new_username
+    print(f"Username updated to '{new_username}'.")
+    _print_ram_warning()
+
 
 def change_password():
     """Update the stored password after verifying the current one."""
@@ -351,8 +392,38 @@ def launch_sites():
     pass
 
 def moon_phases():
-    """Show the approximate current moon phase based on a known reference new moon."""
-    pass
+    """Show the approximate current moon phase."""
+    reference_new_moon = 947182440.0
+    synodic_period = 29.53059
+
+    now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+    elapsed = (now_ts - reference_new_moon) / 86400
+    phase_days = elapsed % synodic_period
+    fraction = phase_days / synodic_period
+
+    if fraction < 0.0625 or fraction >= 0.9375:
+        phase_name = "New Moon"
+    elif fraction < 0.1875:
+        phase_name = "Waxing Crescent"
+    elif fraction < 0.3125:
+        phase_name = "First Quarter"
+    elif fraction < 0.4375:
+        phase_name = "Waxing Gibbous"
+    elif fraction < 0.5625:
+        phase_name = "Full Moon"
+    elif fraction < 0.6875:
+        phase_name = "Waning Gibbous"
+    elif fraction < 0.8125:
+        phase_name = "Last Quarter"
+    else:
+        phase_name = "Waning Crescent"
+
+    illumination = round((1 - math.cos(2 * math.pi * fraction)) / 2 * 100, 1)
+
+    print(f"Days into cycle:  {phase_days:.2f} / {synodic_period} days")
+    print(f"Phase:            {phase_name}")
+    print(f"Illumination:     ~{illumination}%")
+
 
 def time_in_space(start_date, end_date):
     """Calculate the duration between two dates (e.g. a mission window)."""
@@ -408,8 +479,38 @@ def ping_website(url):
     pass
 
 def calculator(equation):
-    """Perform basic binary arithmetic operations (addition subtraction multiplication etc)."""
-    pass
+    expression = equation.split()
+
+    if len(expression) != 3:
+        print("Command failed!")
+        print("Only do binary operations:")
+        print("e.g '5 ^ 4' or '5 * 3'")
+        return
+
+    num1 = float(expression[0])
+    operator = expression[1]
+    num2 = float(expression[2])
+
+    if operator == "+":
+        solution = num1 + num2
+    elif operator == "-":
+        solution = num1 - num2
+    elif operator == "/":
+        solution = num1 / num2
+    elif operator == "*":
+        solution = num1 * num2
+    elif operator == "%":
+        solution = num1 % num2
+    elif operator == "^":
+        solution = num1 ** num2
+    else:
+        print("Command failed!")
+        print("Only do binary operations:")
+        print("e.g '5 ^ 4' or '5 * 3'")
+        return
+
+    print("= ", solution)
+
 
 def random_number(num_range):
     """Generate a random integer within a specified range."""
