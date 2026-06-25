@@ -1,0 +1,93 @@
+# EXAMPLE APP FROM API DOCS
+
+from astralix_api import (
+    App, run, quit,
+    draw_box, draw_text, draw_list, draw_status_bar,
+    draw_input, draw_button, draw_modal,
+    key_name, is_printable,
+    COLOR_WHITE, COLOR_BLACK,
+    ATTR_BOLD,
+)
+
+todos   = ["Buy groceries", "Write Astralixi app", "Read the docs"]
+cursor  = 0
+scroll  = 0
+adding  = False
+new_text = ""
+confirm_delete = False
+
+
+def draw(app):
+    global scroll
+
+    list_h = app.rows - 6
+
+    draw_box(app, 0, 0, app.cols, app.rows, title="Todo", double_border=True)
+
+    # Keep the selected item visible by clamping the scroll offset
+    if cursor < scroll:
+        scroll = cursor
+    if cursor >= scroll + list_h:
+        scroll = cursor - list_h + 1
+
+    draw_list(app, 2, 2, app.cols - 4, list_h,
+              items=todos, selected=cursor, scroll=scroll)
+
+    if adding:
+        draw_text(app, 2, app.rows - 4, "New todo:")
+        draw_input(app, 12, app.rows - 4, app.cols - 14,
+                   value=new_text, focused=True)
+
+    draw_button(app, 2,  app.rows - 2, "Add",    focused=not adding)
+    draw_button(app, 10, app.rows - 2, "Delete", focused=False)
+    draw_status_bar(app, " Arrows Navigate  A Add  D Delete  Q Quit")
+
+    if confirm_delete:
+        draw_modal(app, "Confirm", "Delete this todo?",
+                   ["Yes", "No"], focused_btn=1)
+
+
+def on_key(app, key):
+    global cursor, scroll, adding, new_text, confirm_delete
+
+    name = key_name(key)
+
+    if confirm_delete:
+        if name == "ENTER":
+            if cursor < len(todos):
+                todos.pop(cursor)
+                cursor = max(0, cursor - 1)
+            confirm_delete = False
+        elif name == "ESC":
+            confirm_delete = False
+        return
+
+    if adding:
+        if name == "ENTER":
+            if new_text.strip():
+                todos.append(new_text.strip())
+                cursor = len(todos) - 1
+            new_text = ""
+            adding   = False
+        elif name == "ESC":
+            new_text = ""
+            adding   = False
+        elif name == "BACKSPACE":
+            new_text = new_text[:-1]
+        elif is_printable(key):
+            new_text += chr(key)
+        return
+
+    if name == "UP":
+        cursor = max(0, cursor - 1)
+    elif name == "DOWN":
+        cursor = min(len(todos) - 1, cursor + 1)
+    elif name in ("a", "A"):
+        adding = True
+    elif name in ("d", "D"):
+        if todos:
+            confirm_delete = True
+
+
+app = App(title="Todo")
+run(app, draw, on_key)
