@@ -7,6 +7,7 @@ Once your app is tested and ready, you can submit. But first, make sure that you
 - Python Standard Library Only
 - 1000 lines of code or less
 - Has some use to people
+- Open source (.axapp lets your code be viewable easily anyways)
 If your app follows the above guidelines, you will be ready to submit!
 
 To submit, you will have to fork the repository, and add your app in this App Submissions directory as a folder with your .axapp and a readme file. Then, pull request the repository with your branch, and a contributor will either accept your app, or block it and give you some feedback. That feedback will be either sent to you on cyberspace (provide cyberspace details in readme) or as a comment on your pull request.
