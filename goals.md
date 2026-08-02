@@ -10,6 +10,7 @@
 
 ### Within Next 6 months
 - [ ] Basic Telescope Tools
+- [ ] Make a deal with ClockworkPi for Astralixi Pre-Downloaded on Uconsole
 - [ ] Space News Article Viewer
 - [ ] Space Videos
 - [ ] Advanced 2D Space design
