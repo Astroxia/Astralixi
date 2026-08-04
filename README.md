@@ -10,6 +10,7 @@ Astralixi is a lightweight TUI userspace designed for all ARM devices, built for
 
 ## Contact
 Cyberspace: @astr0x
+Email: 4astrox@gmail.com
 Youtube: @astroxia
 
 ---
