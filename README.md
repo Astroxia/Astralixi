@@ -1,10 +1,12 @@
 # Astralixi
 Astralixi is a lightweight TUI userspace designed for all ARM devices, built for space enthusiasts and tech enthusiasts alike. With an emphasis on simplicity, performance, and accessibility, Astralixi is partly open source—function stubs, imports, and basics are available to view, allowing developers to understand how things work under the hood. This approach helps avoid unauthorized distributions while still maintaining transparency.
+<img width="1931" height="1038" alt="Screenshot_20260804_151514_YouTube" src="https://github.com/user-attachments/assets/b80dbd8f-ebbd-4e0a-be56-197b291cdf0a" />
 
 ## Features
 - Lightweight & Fast: Designed to work efficiently with limited resources.
 - Terminal-User-Interface: A clean, fully TUI-based experience — no desktop, no clutter.
 - Space & Tech Focused: Tailored for space enthusiasts, while remaining approachable for the technically curious.
+<img width="1943" height="1080" alt="Screenshot_20260804_151421_YouTube" src="https://github.com/user-attachments/assets/5700cf2e-644d-4ffe-8e10-2181395f3030" />
 
 ## Contact
 Cyberspace: @astr0x
@@ -17,6 +19,7 @@ Youtube: @astroxia
 Yeah, so I know it might seem like Astralixi being partly open source makes it impossible to contribute. Fair point. But here's the thing — you can totally still help build it out.
 
 There's a bunch of ways you can contribute depending on what you're interested in. Whether it's new system functions, TUI panels, helper utilities, or whatever else fits the vision, the bar is pretty much the same: keep it simple, keep it focused, and don't bloat the codebase.
+<img width="1620" height="1042" alt="Screenshot_20260804_151607_YouTube" src="https://github.com/user-attachments/assets/8a07c7ca-05ba-46f3-860b-4c0572b0c495" />
 
 Here's what we expect from any contribution:
 
@@ -30,6 +33,7 @@ Here's what we expect from any contribution:
 If you want to submit something, open an issue or PR with your code. Explain what it does, why it's useful, and show it in action. A maintainer will review it, and if it fits with where Astralixi is headed, it gets merged.
 
 You can also peek at the function stubs and imports in the codebase to understand the architecture. It's not the full source, but it's enough to see what's possible and what we're building toward.
+<img width="1788" height="1080" alt="Screenshot_20260804_151343_YouTube" src="https://github.com/user-attachments/assets/124cd890-95d2-416d-9371-a930a66a0dd6" />
 
 ---
 
