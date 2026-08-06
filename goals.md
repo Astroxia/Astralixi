@@ -2,7 +2,7 @@
 #### As of 28/07/26
 
 ### Within Next 3 Months
-- [ ] Basic TUI (toolbar, apps list)
+- [ ] Basic TUI (toolbar, apps list, boot screen)
 - [ ] Axapps installation features
 - [ ] 1 Space Text Adventure Game
 - [ ] Asteroids, Stars and Planets Database
