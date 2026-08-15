@@ -1,9 +1,9 @@
 # Goals
-#### As of 28/07/26
+#### Timings As of 28/07/26 (Completion status may be different)
 
 ### Within Next 3 Months
-- [ ] Basic TUI (toolbar, apps list, boot screen)
-- [ ] Axapps installation features
+- [ ] Basic TUI (toolbar, apps list, boot screen, updates for UI and apps)
+- [x] Axapps installation features
 - [ ] 1 Space Text Adventure Game
 - [ ] Asteroids, Stars and Planets Database
 - [ ] Good working code editor
