@@ -6,8 +6,8 @@ Astralixi is a lightweight TUI userspace designed for all ARM devices, built for
 - Lightweight & Fast: Designed to work efficiently with limited resources.
 - Terminal-User-Interface: A clean, fully TUI-based experience — no desktop, no clutter.
 - Space & Tech Focused: Tailored for space enthusiasts, while remaining approachable for the technically curious.
-<img width="1943" height="1080" alt="Screenshot_20260804_151421_YouTube" src="https://github.com/user-attachments/assets/5700cf2e-644d-4ffe-8e10-2181395f3030" />
-
+<img width="2252" height="3450" alt="20260817_174445" src="https://github.com/user-attachments/assets/0c1f28ba-4b18-4634-9b50-1cf663ba14b3" />
+ 
 ## Contact
 Cyberspace: @astr0x
 Email: 4astrox@gmail.com
@@ -34,7 +34,7 @@ Here's what we expect from any contribution:
 If you want to submit something, open an issue or PR with your code. Explain what it does, why it's useful, and show it in action. A maintainer will review it, and if it fits with where Astralixi is headed, it gets merged.
 
 You can also peek at the function stubs and imports in the codebase to understand the architecture. It's not the full source, but it's enough to see what's possible and what we're building toward.
-<img width="1788" height="1080" alt="Screenshot_20260804_151343_YouTube" src="https://github.com/user-attachments/assets/124cd890-95d2-416d-9371-a930a66a0dd6" />
+<img width="1914" height="2916" alt="20260817_174904(0)" src="https://github.com/user-attachments/assets/6936e923-92a4-49fb-b2f3-ec1547273cbd" />
 
 ---
 
