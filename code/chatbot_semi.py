@@ -1,10 +1,27 @@
 """
-Semi-open-source variant of the original chatbot module.
-Most detailed implementations are intentionally removed; this file provides a concise human-written overview of behavior.
+Semi-open-source variant of the Astralixi chatbot module.
+
+NOTICE: The original response database and matching content have been
+redacted for public release. A small representative data set remains so
+the overall structure is clear.
 """
 
-# Public placeholder for the interactive chatbot loop.
+import random
+
+
+# Example prompt groups retained for structure demonstration.
+redirect = {
+    ("hello", "hi"): ["hello", "hi there"],
+    ("space", "space facts"): ["Space is enormous and full of stars."],
+    ("rocket", "rockets"): ["Rockets use thrust to move through space."],
+}
+
 
 def active_chatbot():
-    # Interactive loop reads user input, matches keywords to canned replies, selects one randomly, then prints it. Public release placeholder.
+    """
+    Run the interactive chatbot session.
+
+    The original prompt-matching and response-selection flow is redacted
+    except for the representative data structure above.
+    """
     pass

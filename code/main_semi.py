@@ -1,71 +1,190 @@
 """
-Semi-open-source variant of the main entrypoint module.
+Semi-open-source variant of the Astralixi main application.
 
-NOTICE: Sensitive or highly specific startup, terminal control and credential-handling code has been redacted
-for public release. Below each function has a human-written comment describing its original intent and behavior.
+NOTICE: The original boot, toolbar, app-library, authentication, and
+interactive shell implementations are redacted for public release.
+Public structure and selected representative helpers are retained.
 """
 
+import os
+import shutil
+import sys
 import time
 import threading
+import readline
+import select
+import termios
+import tty
+import signal
+from pathlib import Path
+from datetime import datetime
 
-# Toolbar state placeholders
-toolbar_time = "--:--"
-toolbar_date = "YYYY-MM-DD"
-toolbar_ram = "--%"
-toolbar_cpu = "--%"
-toolbar_battery = "--%"
+import commands
+import astralixi_api
+import chatbot
+import updater
 
-# Note: real implementation uses psutil and terminal escape sequences to render a live toolbar.
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+
+# ---------------------------------------------------------------------------
+# BOOT / APPLICATION CONFIGURATION
+# ---------------------------------------------------------------------------
+
+STEP_DELAY = 1.0
+BIG_TEXT = "ASTRALIXI"
+MEDIUM_TEXT = "By Astroxia"
+REPO_LINK = "<redacted>"
+
+AXAPPS_DIR = os.path.expanduser("~/.axapps")
+OVERLAY_POLL_INTERVAL = 0.25
+
+toolbar_overlay_active = False
+terminal_draw_lock = threading.RLock()
+
+
+# ---------------------------------------------------------------------------
+# BOOT SPLASH
+# ---------------------------------------------------------------------------
+
+def run_boot_splash():
+    """Render the startup splash sequence; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# APP LIBRARY / OVERLAY
+# ---------------------------------------------------------------------------
+
+def get_terminal_size(fd=None):
+    """Return terminal dimensions using a direct terminal query; representative example."""
+    try:
+        if fd is None:
+            fd = sys.stdout.fileno()
+        size = os.get_terminal_size(fd)
+        return size.lines, size.columns
+    except (OSError, ValueError):
+        return shutil.get_terminal_size((80, 25))
+
+
+def find_axapps():
+    """Return installed .axapp files sorted by name; representative example."""
+    app_dir = Path(AXAPPS_DIR)
+    if not app_dir.is_dir():
+        return []
+
+    try:
+        return sorted(
+            [p for p in app_dir.iterdir()
+             if p.is_file() and p.suffix.lower() == ".axapp"],
+            key=lambda path: path.name.lower()
+        )
+    except OSError:
+        return []
+
+
+def _fit_text(text, width):
+    """Trim text to a safe terminal width; implementation redacted."""
+    pass
+
+
+def _draw_app_library(apps, selected):
+    """Render the app-library overlay; implementation redacted."""
+    pass
+
+
+def _read_overlay_key(fd):
+    """Read and interpret one overlay key sequence; implementation redacted."""
+    pass
+
+
+def _launch_axapp(app_path):
+    """Launch an installed .axapp; implementation redacted."""
+    pass
+
+
+def show_app_library_overlay():
+    """Open the app-library overlay; implementation redacted."""
+    pass
+
+
+def start_alttab_listener():
+    """Watch for the launcher keyboard shortcut; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# TOOLBAR
+# ---------------------------------------------------------------------------
 
 def _update_toolbar_metrics():
-    """Update date/time and collect RAM/CPU/battery metrics for display; implementation removed for privacy."""
+    """Refresh toolbar performance/usage metrics; implementation redacted."""
     pass
+
 
 def draw_toolbar():
-    """Render a single-line status bar at the top of the terminal showing time, date, RAM, CPU, and battery."""
+    """Draw the persistent system toolbar; implementation redacted."""
     pass
+
 
 def start_toolbar_loop():
-    """Spawn a daemon thread that periodically redraws the toolbar without blocking the main interactive loop."""
+    """Start the background toolbar refresh loop; implementation redacted."""
     pass
+
 
 def init_terminal_scroll_region():
-    """Configure terminal scroll region so the first line stays static while application output scrolls below it."""
+    """Configure terminal scrolling around the toolbar; implementation redacted."""
     pass
 
-# Autocompletion list intentionally omitted to avoid exposing the full command set.
-COMMAND_LIST = []
+
+# ---------------------------------------------------------------------------
+# INPUT / LOGIN HELPERS
+# ---------------------------------------------------------------------------
 
 def _completer(text, state):
-    """Provide readline-style completion candidates from an internal command list; implementation removed."""
+    """Provide readline command completion; implementation redacted."""
     pass
 
-CREDENTIALS_FILE = "credentials.txt"
 
 def credentials_are_set():
-    """Check if credentials are present in a credentials file; simplified check only described here."""
+    """Check whether usable credentials exist; implementation redacted."""
     pass
+
 
 def login():
-    """Prompt for username and password, validate against stored credentials, and populate in-memory credentials."""
+    """Run the login flow; implementation redacted."""
     pass
+
 
 def _get_line_from_readline():
-    """Return the current input buffer from the readline library in a safely-handled way; implementation omitted."""
-    pass
+    """Return the current readline input buffer; representative example."""
+    try:
+        return readline.get_line_buffer()
+    except Exception:
+        return ""
+
 
 def _paste_clipboard():
-    """Insert stored clipboard text into the current readline buffer and redisplay it; removed for public release."""
+    """Insert the in-memory Astralixi clipboard into the active readline line; implementation redacted."""
     pass
 
-def _handle_ctrl_v():
-    """Keyboard binding for Ctrl+V to trigger the clipboard paste helper; removed for public release."""
-    pass
+
+# ---------------------------------------------------------------------------
+# MAIN ENTRY POINT
+# ---------------------------------------------------------------------------
 
 def main():
-    """High-level application initialization and interactive loop orchestration; sensitive startup code redacted."""
+    """
+    Start the Astralixi shell.
+
+    The original initialization order, command loop, authentication flow,
+    and background UI management are redacted for public release.
+    """
     pass
 
+
 if __name__ == "__main__":
-    # Placeholder: the original main performed terminal setup, optional login, and entered a read-eval-print loop.
-    pass
+    main()

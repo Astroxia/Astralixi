@@ -1,14 +1,14 @@
 """
-Semi-open-source variant of the commands module.
+Semi-open-source variant of the Astralixi commands module.
 
-NOTICE: Most functions and internal data structures have been redacted for public release. Below, each redacted
-function contains a concise human-written comment describing its original behavior. A small, representative
-set of utility functions are left implemented (one per major section) so the module remains partially useful.
+NOTICE: Most function implementations and internal data structures have
+been redacted for public release. Concise descriptions preserve the public
+interface, while a small representative set of utilities remains implemented.
 """
 
 import os
-import shutil
 import math
+import shutil
 from collections import Counter
 
 try:
@@ -16,19 +16,70 @@ try:
 except Exception:
     psutil = None
 
-# Minimal preserved state placeholders (empty for public release)
+
+# Minimal preserved state placeholders
 command_history_log = []
 _shortcuts = {}
 _clipboard_text = ""
 _credentials = {"username": "", "password": ""}
 
-# ── Helper / Notice ──────────────────────────────────────────────────────
-# Implementations are intentionally removed except for a few representative functions listed below.
+time_string = "1200"
+date = "01012000"
 
-# -------------------- FILES SECTION (kept function) --------------------
+axappPackagePath = os.path.expanduser("~/Astralixi/axappPackages")
+axappInstalledPath = os.path.expanduser("~/.axapps")
+
+_RAM_WARNING = (
+    "[!] This change is saved in RAM only and will be lost on shutdown or reboot.\n"
+    "[i] Permanent credential storage is coming in a future version of Astralixi OS."
+)
+
+
+# ---------------------------------------------------------------------------
+# STATE / CLIPBOARD EXAMPLES
+# ---------------------------------------------------------------------------
+
+def set_clipboard_text(text):
+    """Store text in the in-memory clipboard; representative example."""
+    global _clipboard_text
+    _clipboard_text = text if text is not None else ""
+
+
+def get_clipboard_text():
+    """Return the in-memory clipboard contents; representative example."""
+    return _clipboard_text
+
+
+def _print_ram_warning():
+    """Print the warning used when changing RAM-only account data; redacted."""
+    print(_RAM_WARNING)
+
+
+# ---------------------------------------------------------------------------
+# COMMAND DISPATCHER
+# ---------------------------------------------------------------------------
+
+def execute_command(command):
+    """Parse and dispatch a shell-style command; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# FILE COMMANDS
+# ---------------------------------------------------------------------------
+
+def list_files():
+    """List files in the current directory excluding directories; redacted."""
+    pass
+
+
+def list_hidden_files():
+    """List hidden files in the current directory; redacted."""
+    pass
+
 
 def file_stats(file_path):
-    """Read a file, count characters, words, and lines, and print formatted statistics. Useful example left open-source."""
+    """Read a file and print character, word, and line statistics; representative example."""
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
@@ -46,18 +97,67 @@ def file_stats(file_path):
     print(f"File Path: {file_path}")
     print("Character Counts:")
     for char, count in char_count.items():
-        # Print only printable ASCII characters to keep output readable
-        if ord(char) >= 32 and ord(char) <= 126:
+        if 32 <= ord(char) <= 126:
             print(f"{char}: {count}")
+
     print("\nWord Counts:")
     print(f"Total Words: {word_count}")
+
     print("\nLine Counts:")
     print(f"Total Lines: {line_count}")
 
-# -------------------- DIRECTORIES SECTION (kept function) --------------------
+
+def create_file(name):
+    """Create a new empty file; implementation redacted."""
+    pass
+
+
+def remove_file(path):
+    """Remove a file with safety checks; implementation redacted."""
+    pass
+
+
+def copy_file(source, destination):
+    """Copy a file to another location; implementation redacted."""
+    pass
+
+
+def move_file(source, destination):
+    """Move a file to another location; implementation redacted."""
+    pass
+
+
+def rename_file(old_name, new_name):
+    """Rename a file safely; implementation redacted."""
+    pass
+
+
+def print_file(name):
+    """Print the contents of a file; implementation redacted."""
+    pass
+
+
+def peek_file_content(name):
+    """Print the first and last portion of a file; implementation redacted."""
+    pass
+
+
+def search_for_file(search_term):
+    """Search filenames in the current directory; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# DIRECTORY COMMANDS
+# ---------------------------------------------------------------------------
+
+def list_directories():
+    """List directories in the current directory; implementation redacted."""
+    pass
+
 
 def change_directory(new_directory):
-    """Change the current working directory; prints an error message if the path is invalid or not a directory."""
+    """Change the current working directory; representative example."""
     try:
         os.chdir(new_directory)
     except FileNotFoundError:
@@ -67,39 +167,189 @@ def change_directory(new_directory):
     except PermissionError:
         print(f"Error: Permission denied changing to '{new_directory}'.")
 
-# -------------------- SYSTEM SECTION (kept function) --------------------
+
+def print_current_directory():
+    """Print the current working directory; implementation redacted."""
+    pass
+
+
+def make_folder(path):
+    """Create a directory; implementation redacted."""
+    pass
+
+
+def remove_folder(path):
+    """Recursively remove a directory; implementation redacted."""
+    pass
+
+
+def copy_folder(source, destination):
+    """Copy a directory tree; implementation redacted."""
+    pass
+
+
+def move_folder(source, destination):
+    """Move a directory; implementation redacted."""
+    pass
+
+
+def rename_folder(old_name, new_name):
+    """Rename a directory; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# SYSTEM COMMANDS
+# ---------------------------------------------------------------------------
+
+def uptime():
+    """Report system uptime; implementation redacted."""
+    pass
+
+
+def processes_running():
+    """Enumerate running processes; implementation redacted."""
+    pass
+
+
+def kill_process(selected_pid):
+    """Terminate a selected process with safety checks; implementation redacted."""
+    pass
+
+
+def clear_terminal():
+    """Clear terminal output while preserving the system toolbar; implementation redacted."""
+    pass
+
+
+def command_history():
+    """Show recent successful commands; implementation redacted."""
+    pass
+
+
+def disk_free():
+    """Report disk usage statistics; implementation redacted."""
+    pass
+
 
 def memory_used():
-    """Report basic RAM metrics (total, used, available, percent) using psutil when available; otherwise report N/A."""
+    """Report total, used, available, and percentage RAM; representative example."""
     if psutil is None:
         print("psutil not available; cannot report memory usage.")
         return
+
     try:
         mem = psutil.virtual_memory()
         gb = 1024 ** 3
         print(
             f"Total: {mem.total / gb:.2f} GB  |  "
-            f"Used:  {mem.used / gb:.2f} GB  |  "
+            f"Used: {mem.used / gb:.2f} GB  |  "
             f"Available: {mem.available / gb:.2f} GB  |  "
             f"{mem.percent}% in use"
         )
     except Exception as e:
         print(f"Error retrieving memory info: {e}")
 
-# -------------------- ACCOUNT SECTION (kept function) --------------------
+
+def shutdown():
+    """Shut the operating environment down; implementation redacted."""
+    pass
+
+
+def reboot():
+    """Reboot the operating environment; implementation redacted."""
+    pass
+
+
+def hibernate():
+    """Hibernate or suspend the system; implementation redacted."""
+    pass
+
+
+def wifi_tools(action):
+    """Perform supported Wi-Fi actions such as scanning or connecting; implementation redacted."""
+    pass
+
+
+def time_tools(action):
+    """Read or modify Astralixi's simulated time; implementation redacted."""
+    pass
+
+
+def date_tools(action):
+    """Read or modify Astralixi's simulated date; implementation redacted."""
+    pass
+
+
+def battery_percentage():
+    """Display the current battery percentage; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# APPLICATION / ACCOUNT COMMANDS
+# ---------------------------------------------------------------------------
+
+def axinstall(app):
+    """Install an .axapp package into the local application directory; implementation redacted."""
+    pass
+
+
+def axuninstall(App):
+    """Uninstall an installed .axapp package; implementation redacted."""
+    pass
+
+
+def force_exit():
+    """Force the Astralixi application to exit; implementation redacted."""
+    pass
+
+
+def run_update():
+    """Start the system updater; implementation redacted."""
+    pass
+
+
+def cpu_info():
+    """Display CPU information; implementation redacted."""
+    pass
+
 
 def who_am_i():
-    """Print the currently stored username from in-memory credentials; placeholder for real account logic."""
+    """Report the current in-memory username; representative example."""
     username = _credentials.get("username", "")
     if username:
         print(f"Username: {username}")
     else:
         print("No username set.")
 
-# -------------------- SPACE SECTION (kept function) --------------------
+
+def change_username():
+    """Change the stored username after validation; implementation redacted."""
+    pass
+
+
+def change_password():
+    """Change the stored password with confirmation; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# SPACE COMMANDS
+# ---------------------------------------------------------------------------
+
+def space_unit_convert(value, unit, converted_unit):
+    """Convert between supported space-related units; implementation redacted."""
+    pass
+
+
+def orbital_speed(planet):
+    """Compute orbital information for a supported body; implementation redacted."""
+    pass
+
 
 def rocket_equation(isp, m0, mf):
-    """Calculate delta-v using the Tsiolkovsky rocket equation. Kept as an instructive, open example for users."""
+    """Calculate delta-v using the Tsiolkovsky rocket equation; representative example."""
     try:
         isp = float(isp)
         m0 = float(m0)
@@ -108,34 +358,112 @@ def rocket_equation(isp, m0, mf):
         print("Error: All arguments must be numbers.")
         return
 
-    if mf <= 0 or m0 <= 0:
+    if m0 <= 0 or mf <= 0:
         print("Error: Masses must be greater than zero.")
         return
+
     if mf >= m0:
         print("Error: Final mass must be less than initial mass (fuel must be consumed).")
         return
 
     g0 = 9.80665
     dv = isp * g0 * math.log(m0 / mf)
-    dv_km = dv / 1000
 
     print(f"Isp:              {isp:.1f} s")
     print(f"Initial mass:     {m0:,.0f} kg")
     print(f"Final mass:       {mf:,.0f} kg")
     print(f"Mass ratio:       {m0 / mf:.4f}")
-    print(f"Delta-v:          {dv:,.2f} m/s  |  {dv_km:.4f} km/s")
+    print(f"Delta-v:          {dv:,.2f} m/s  |  {dv / 1000:.4f} km/s")
 
-# -------------------- MISC SECTION (kept function) --------------------
+
+def planet_reference():
+    """Print a compact planet reference table; implementation redacted."""
+    pass
+
+
+def launch_sites():
+    """Print notable launch sites and metadata; implementation redacted."""
+    pass
+
+
+def moon_phases():
+    """Estimate lunar phase information; implementation redacted."""
+    pass
+
+
+def time_in_space(start_date, end_date):
+    """Calculate the duration between two dates; implementation redacted."""
+    pass
+
+
+def constellation_reference():
+    """Provide constellation and bright-star reference data; implementation redacted."""
+    pass
+
+
+def moon_craters():
+    """Provide notable lunar crater information; implementation redacted."""
+    pass
+
+
+def random_crew_profiles():
+    """Return a randomly selected astronaut/cosmonaut profile; implementation redacted."""
+    pass
+
+
+def track_iss():
+    """Query and display a small amount of ISS tracking data; implementation redacted."""
+    pass
+
+
+def fake_telemetry_sim():
+    """Simulate textual spacecraft telemetry; implementation redacted."""
+    pass
+
+
+def weight_calculator(mass, body):
+    """Convert mass to surface weight on supported bodies; implementation redacted."""
+    pass
+
+
+def earthday_marssol(numOfEarthDays):
+    """Convert Earth days to Mars sols; implementation redacted."""
+    pass
+
+
+def random_space_quote():
+    """Return one of several space-related quotes; implementation redacted."""
+    pass
+
+
+def journal_writing(*words):
+    """Append a Captain's Log entry; implementation redacted."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# MISC COMMANDS
+# ---------------------------------------------------------------------------
+
+def hello():
+    """Print a greeting; implementation redacted."""
+    pass
+
+
+def ping_website(url):
+    """Check whether a website is reachable; implementation redacted."""
+    pass
+
 
 def calculator(equation):
-    """Simple calculator that parses a binary expression like '5 ^ 4' or '5 * 3' and prints the result."""
+    """Evaluate a simple binary arithmetic expression; representative example."""
     if not equation:
         print("Usage: calc '<num1> <op> <num2>'")
         return
-    expression = equation.split()
 
+    expression = equation.split()
     if len(expression) != 3:
-        print("Command failed! Only binary operations allowed (e.g. '5 ^ 4' or '5 * 3').")
+        print("Command failed! Only binary operations are supported.")
         return
 
     try:
@@ -146,18 +474,17 @@ def calculator(equation):
         print("Error: operands must be numbers.")
         return
 
-    solution = None
     if operator == "+":
         solution = num1 + num2
     elif operator == "-":
         solution = num1 - num2
+    elif operator == "*":
+        solution = num1 * num2
     elif operator == "/":
         if num2 == 0:
             print("Error: Division by zero.")
             return
         solution = num1 / num2
-    elif operator == "*":
-        solution = num1 * num2
     elif operator == "%":
         solution = num1 % num2
     elif operator == "^":
@@ -168,248 +495,70 @@ def calculator(equation):
 
     print("= ", solution)
 
-# -------------------- REDACTED FUNCTIONS (examples) --------------------
-# The following functions are retained as named placeholders with concise, human-written descriptions.
-# Implementations removed intentionally to avoid revealing original logic or data structures.
-
-def list_files():
-    """List files in the current directory excluding directories; implementation removed for public release."""
-    pass
-
-def list_hidden_files():
-    """List hidden files that begin with a dot in the current directory; implementation removed for public release."""
-    pass
-
-def create_file(name):
-    """Create a new empty file at the given path; redacted to avoid exposing file creation patterns or checks."""
-    pass
-
-def remove_file(path):
-    """Remove a file at a given path with safety checks; redacted for public release."""
-    pass
-
-def copy_file(source, destination):
-    """Copy a file from source to destination and report success or errors; implementation removed for public release."""
-    pass
-
-def move_file(source, destination):
-    """Move a file to a new destination with error handling; implementation removed for public release."""
-    pass
-
-def rename_file(old_name, new_name):
-    """Rename a file safely, checking for existing targets; redacted for public release."""
-    pass
-
-def print_file(name):
-    """Print the full contents of a file; removed to avoid revealing printing and encoding heuristics."""
-    pass
-
-def peek_file_content(name):
-    """Print the first and last N lines of a file; example redacted for public release."""
-    pass
-
-def search_for_file(search_term):
-    """Search files by name pattern in the current working directory; redacted to avoid revealing exact matching behavior."""
-    pass
-
-# Directory helpers redacted except change_directory above
-
-def list_directories():
-    """List directories (not files) in the current directory; redacted for public release."""
-    pass
-
-def print_current_directory():
-    """Print the absolute current working directory path; redacted for public release."""
-    pass
-
-def make_folder(path):
-    """Create a directory at the specified path; redacted for public release."""
-    pass
-
-def remove_folder(path):
-    """Recursively remove a directory and its contents; redacted for public release."""
-    pass
-
-def copy_folder(source, destination):
-    """Copy a directory tree recursively; redacted for public release."""
-    pass
-
-def move_folder(source, destination):
-    """Move a directory to a new location; redacted for public release."""
-    pass
-
-def rename_folder(old_name, new_name):
-    """Rename a directory with validation; redacted for public release."""
-    pass
-
-# System utilities redacted except memory_used above
-
-def uptime():
-    """Report system uptime in a friendly format; redacted for public release."""
-    pass
-
-def processes_running():
-    """Enumerate running processes and print PIDs and names; redacted for public release."""
-    pass
-
-def kill_process(selected_pid):
-    """Terminate a process given a PID with safety checks; redacted for public release."""
-    pass
-
-def clear_terminal():
-    """Clear terminal output region while preserving top toolbar; redacted for public release."""
-    pass
-
-def command_history():
-    """Show the most recent command history entries; redacted for public release."""
-    pass
-
-def disk_free():
-    """Report disk usage statistics (total, used, free); redacted for public release."""
-    pass
-
-# More account and credential related flows redacted except who_am_i
-
-def change_username():
-    """Change stored username after verifying existing value; redacted for public release."""
-    pass
-
-def change_password():
-    """Change stored password with confirmation prompts; redacted for public release."""
-    pass
-
-# Wi-fi and time/date tools redacted
-
-def wifi_tools(action):
-    """Wi-fi helper actions such as scan and connect; redacted for privacy and public release."""
-    pass
-
-def time_tools(action):
-    """Local time tools for user-facing clock simulation; implementation removed for public release."""
-    pass
-
-def date_tools(action):
-    """Local date tools for manual date setting; implementation removed for public release."""
-    pass
-
-# Application install/uninstall redacted
-
-def axinstall(app):
-    """Install an axapp package file into the local applications directory; redacted for public release."""
-    pass
-
-def axuninstall(App):
-    """Uninstall an installed axapp by removing its file; redacted for public release."""
-    pass
-
-# Space helpers redacted except rocket_equation above
-
-def orbital_speed(planet):
-    """Compute and print orbital parameters for supported bodies; redacted for public release."""
-    pass
-
-def planet_reference():
-    """Print a compact planet reference table; redacted for public release."""
-    pass
-
-def launch_sites():
-    """Print a list of notable launch sites and basic metadata; redacted for public release."""
-    pass
-
-def moon_phases():
-    """Estimate moon phase and illumination from a fixed epoch; redacted for public release."""
-    pass
-
-def time_in_space(start_date, end_date):
-    """Compute duration between two dates in days/weeks/months/years; redacted for public release."""
-    pass
-
-def constellation_reference():
-    """Provide a short reference list of constellations and bright stars; redacted for public release."""
-    pass
-
-def moon_craters():
-    """Provide a list of notable lunar craters and brief descriptions; redacted for public release."""
-    pass
-
-def random_crew_profiles():
-    """Return a randomly selected astronaut/cosmonaut profile with minimal fields; redacted for public release."""
-    pass
-
-def track_iss():
-    """Query a public ISS tracking API and display a few position fields; redacted for public release."""
-    pass
-
-def fake_telemetry_sim():
-    """Simulate a simple textual telemetry stream for demo purposes; redacted for public release."""
-    pass
-
-def weight_calculator(mass, body):
-    """Convert mass to surface weight on various bodies using approximate gravity values; redacted for public release."""
-    pass
-
-def earthday_marssol(numOfEarthDays):
-    """Convert Earth-days to Mars sols using a fixed conversion factor; redacted for public release."""
-    pass
-
-def random_space_quote():
-    """Return one of several inspirational space quotes; redacted for public release."""
-    pass
-
-def journal_writing(*words):
-    """Append a short journal entry to a file used for Captain's logs; redacted for public release."""
-    pass
-
-# Misc redacted except calculator above
-
-def hello():
-    """Print a simple greeting to standard output; redacted for public release."""
-    pass
-
-def ping_website(url):
-    """Perform a quick HTTP reachability check and report status; redacted for public release."""
-    pass
 
 def random_number(num_range):
-    """Return a random integer in a given range inclusive; redacted for public release."""
+    """Return a random integer from a range specification; implementation redacted."""
     pass
+
 
 def pyrun(script_path):
-    """Execute a Python script in a subprocess or via the interpreter; redacted for public release."""
+    """Run a Python script; implementation redacted."""
     pass
+
 
 def shortcut_to_long_command(shortcut, *cmd_parts):
-    """Create a shortcut alias mapping to a longer command string; redacted for public release."""
+    """Create or update a command shortcut; implementation redacted."""
     pass
+
 
 def app_run(appName):
-    """Run an application within the same interpreter using a minimal API; redacted for public release."""
+    """Run an installed application; implementation redacted."""
     pass
+
 
 def clip(command_name, *args):
-    """Capture output of another command and store into an in-memory clipboard buffer; redacted for public release."""
+    """Capture another command's output to the in-memory clipboard; implementation redacted."""
     pass
+
+
+class _CapturePrint:
+    """Internal stdout capture helper; implementation redacted."""
+
+    def __init__(self, buffer):
+        pass
+
+    def write(self, text):
+        pass
+
+    def flush(self):
+        pass
+
 
 def countdown_clock(seconds):
-    """Display a one-line countdown timer for the specified number of seconds; redacted for public release."""
+    """Display a countdown timer; implementation redacted."""
     pass
+
 
 def tally_tool():
-    """Simple interactive tally counter that increments on keypress until quit; redacted for public release."""
+    """Run an interactive tally counter; implementation redacted."""
     pass
+
 
 def random_password_gen(length):
-    """Generate a secure password and optionally save it to a local locker file; redacted for public release."""
+    """Generate a secure random password; implementation redacted."""
     pass
+
 
 def dice_roller(sides, dice):
-    """Simulate rolling N dice of M sides and print results; redacted for public release."""
+    """Roll multiple dice and print the results; implementation redacted."""
     pass
+
 
 def run_chatbot():
-    """Launch the interactive chatbot session to accept user messages and reply; redacted for public release."""
+    """Launch the interactive chatbot; implementation redacted."""
     pass
 
+
 def help_manual():
-    """Print a brief help manual listing common commands and their usage; redacted for public release."""
+    """Print command help and usage information; implementation redacted."""
     pass
