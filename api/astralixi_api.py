@@ -1,5 +1,5 @@
 """
-astralixi_api.py  -  Astralixi TUI Application API  v12/06/26
+astralixi_api.py  -  Astralixi TUI Application API  v22/09/26
 ===========================================================
 The official API for building TUI apps on Astralixi.
 
@@ -21,15 +21,18 @@ RULES
 - TUI ONLY. No tkinter windows, no turtle, no pygame, nothing graphical.
 - Your entire app must be a single .py file.
 - Import this module and use its functions. Do not write raw curses code.
-- Your app MUST provide a way for the user to exit (e.g. Q or Escape).
-  The API will exit on Q or Escape by default, but you should make this
-  obvious to the user - put it in the status bar or somewhere visible.
+- Your app MUST provide a way for the user to exit (e.g. Q).
+  The API will exit on Q by default (or a custom key if configured via quit_key),
+  and you should make this obvious to the user - put it in the status bar or somewhere visible.
 
 DISPLAY MODEL
 -------------
-Astralixi runs on a fixed 720p display. There is no window resizing at
-runtime. The TUI grid maps to approximately 213 columns x 45 rows
-(at 6x16 px per character cell).
+Astralixi runs on a fixed display. There is no window resizing at
+runtime. The recommended display grid maps to 160 columns x 45 rows.
+
+WARNING: The top row (row 0) is partially cut off or obscured by the system
+toolbar. It is strongly recommended to start drawing your main app UI at row 1
+or lower to avoid visual overlap.
 
 app.cols and app.rows reflect the actual terminal size measured at startup.
 Use them (not hardcoded numbers) for all layout calculations so your app
@@ -40,8 +43,9 @@ QUICK START
     from astralixi_api import App, draw_box, draw_text, draw_status_bar, run
 
     def draw(app):
-        draw_box(app, 0, 0, app.cols, app.rows, title="My App", double_border=True)
-        draw_text(app, 4, 2, "Hello, Astralixi!")
+        # Draw starting at row 1 to avoid top toolbar cutoff
+        draw_box(app, 0, 1, app.cols, app.rows - 1, title="My App", double_border=True)
+        draw_text(app, 4, 3, "Hello, Astralixi!")
         draw_status_bar(app, " Q to quit")
 
     app = App(title="My App")
@@ -77,9 +81,12 @@ ATTR_BLINK     = 1 << 3     # blinking (not all terminals support this)
 ATTR_REVERSE   = 1 << 4     # swap foreground and background colours
 ATTR_ITALIC    = 1 << 5     # italic (not all terminals support this)
 
-# 720p reference grid dimensions (6px wide, 16px tall per character cell)
-REF_COLS = 213   # 1280 / 6  = ~213 columns
-REF_ROWS = 45    #  720 / 16 =  ~45 rows
+# Recommended reference grid dimensions
+REF_COLS = 160   # Recommended 160 columns
+REF_ROWS = 45    # Recommended 45 rows
+
+# Global state for application quit key configuration (default: "q")
+_QUIT_KEY = 'q'
 
 # Spinner frame sequences used by draw_spinner()
 _SPINNERS = {
@@ -168,6 +175,25 @@ def _safe_addstr(win, row, col, text, attr=0):
 
 
 # ---------------------------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------------------------
+
+def quit_key(char: str) -> None:
+    """
+    Set the default key used to exit the application.
+
+    Args
+    ----
+    char : str
+        A single character string specifying the key to trigger app exit.
+        Case insensitive for alphabetic characters (e.g. 'q' covers 'q' and 'Q').
+    """
+    global _QUIT_KEY
+    if char and isinstance(char, str):
+        _QUIT_KEY = char[0]
+
+
+# ---------------------------------------------------------------------------
 # App - the central application object
 # ---------------------------------------------------------------------------
 
@@ -181,8 +207,8 @@ class App:
     title   : str   - the app name, shown in the title bar if you draw one
     cols    : int   - terminal width in character columns (measured at startup)
     rows    : int   - terminal height in character rows   (measured at startup)
-    scale_x : float - horizontal scale factor vs. the 720p reference grid
-    scale_y : float - vertical   scale factor vs. the 720p reference grid
+    scale_x : float - horizontal scale factor vs. the reference grid
+    scale_y : float - vertical   scale factor vs. the reference grid
     running : bool  - True while the main loop is active
 
     Args
@@ -221,9 +247,9 @@ def run(app: App, draw_fn, input_fn=None) -> None:
     Handles all curses setup and cleanup for you. You do not need to call
     curses.wrapper() or curses.endwin() yourself.
 
-    Q and Escape always quit the app. Make sure your status bar or UI makes
-    this clear to the user - every Astralixi app must have a visible exit
-    option.
+    The configured quit key (default: Q) always quits the app. Make sure your
+    status bar or UI makes this clear to the user - every Astralixi app must
+    have a visible exit option.
 
     Args
     ----
@@ -234,7 +260,7 @@ def run(app: App, draw_fn, input_fn=None) -> None:
     input_fn : callable(app, key: int) -> None, optional
         Your input handler. Called on every keypress. `key` is a raw curses
         key code - pass it through key_name() or is_printable() to use it.
-        If you skip this, only Q/Escape will do anything (quitting the app).
+        If you skip this, only the quit key will do anything (quitting the app).
     """
     def _main(stdscr):
         app._win = stdscr
@@ -275,8 +301,12 @@ def run(app: App, draw_fn, input_fn=None) -> None:
                 key = stdscr.getch()
                 if key == -1:
                     break
-                # Q or Escape always quit - this is required behaviour
-                if key in (ord('q'), ord('Q'), 27):
+                
+                # Determine quitting key condition (case-insensitive check for alphabetic characters)
+                q_char = _QUIT_KEY.lower()
+                q_codes = (ord(q_char), ord(q_char.upper())) if q_char.isalpha() else (ord(_QUIT_KEY),)
+                
+                if key in q_codes:
                     app.running = False
                     break
                 if input_fn is not None:
@@ -300,7 +330,14 @@ def run(app: App, draw_fn, input_fn=None) -> None:
             if remaining > 0:
                 curses.napms(int(remaining * 1000))
 
-    curses.wrapper(_main)
+    try:
+        curses.wrapper(_main)
+    finally:
+        # Clear screen on exit to remove leftover UI elements
+        try:
+            command.run("clear")
+        except Exception:
+            pass
 
 
 def _draw_notifications(app: App) -> None:
@@ -324,8 +361,8 @@ def quit(app: App) -> None:
     Tell the main loop to stop after the current frame finishes.
 
     You can call this from your input_fn or draw_fn when you want to exit
-    programmatically (e.g. a "Quit" menu item). Q and Escape do this
-    automatically without you needing to call quit() yourself.
+    programmatically (e.g. a "Quit" menu item). The configured quit key does
+    this automatically without you needing to call quit() yourself.
 
     Args
     ----
@@ -355,18 +392,18 @@ def get_size(app: App) -> tuple:
 
 def scale(app: App, ref_col: int = 0, ref_row: int = 0) -> tuple:
     """
-    Convert a position from the 720p reference grid (213x45) to actual
+    Convert a position from the reference grid (160x45) to actual
     terminal coordinates.
 
     Design your layout using reference grid positions, then call scale()
     to get the real coordinates. This means your app will look correct
-    on any terminal that differs slightly from the 720p reference.
+    on any terminal that differs slightly from the reference grid.
 
     Args
     ----
     app     : App
-    ref_col : int - column in the 720p reference grid (0-based)
-    ref_row : int - row    in the 720p reference grid (0-based)
+    ref_col : int - column in the reference grid (0-based)
+    ref_row : int - row    in the reference grid (0-based)
 
     Returns
     -------
@@ -374,7 +411,7 @@ def scale(app: App, ref_col: int = 0, ref_row: int = 0) -> tuple:
 
     Example
     -------
-        col, row = scale(app, 106, 22)   # roughly the centre of the screen
+        col, row = scale(app, 80, 22)   # roughly the centre of the screen
     """
     return (int(ref_col * app.scale_x), int(ref_row * app.scale_y))
 
@@ -401,7 +438,7 @@ def draw_text(app: App, col: int, row: int, text: str,
     fg     : int, optional - foreground colour (COLOR_* constant). Default WHITE.
     bg     : int, optional - background colour (COLOR_* constant). Default BLACK.
     attr   : int, optional - text style (ATTR_* flags, combine with |). Default NORMAL.
-    scaled : bool, optional - if True, treat col/row as 720p reference coordinates
+    scaled : bool, optional - if True, treat col/row as reference coordinates
                               and scale them to actual terminal coords. Default False.
     """
     if scaled:
@@ -504,7 +541,7 @@ def draw_box(app: App, col: int, row: int, width: int, height: int,
     fg            : int, optional - border colour. Default WHITE.
     bg            : int, optional - background colour. Default BLACK.
     double_border : bool, optional - use double-line box chars. Default False.
-    scaled        : bool, optional - scale col/row from 720p reference. Default False.
+    scaled        : bool, optional - scale col/row from reference grid. Default False.
     """
     if scaled:
         col, row = scale(app, col, row)
@@ -885,6 +922,8 @@ def draw_menu_bar(app: App, items: list,
                   selected: int = -1) -> None:
     """
     Draw a horizontal menu bar across row 0 of the screen.
+    Note: On Astralixi, row 0 is partially obscured by the system toolbar.
+    Consider placing menu bars at row 1 instead.
 
     Args
     ----
@@ -1186,8 +1225,8 @@ def get_terminal_info() -> dict:
         "rows"    : int   - terminal height in rows
         "colors"  : int   - number of supported colours (usually 8 or 256)
         "term"    : str   - the TERM environment variable value
-        "scale_x" : float - horizontal scale factor vs. 720p reference grid
-        "scale_y" : float - vertical   scale factor vs. 720p reference grid
+        "scale_x" : float - horizontal scale factor vs. reference grid
+        "scale_y" : float - vertical   scale factor vs. reference grid
     """
     size = shutil.get_terminal_size(fallback=(REF_COLS, REF_ROWS))
     try:
@@ -1361,24 +1400,6 @@ command = _Command()
 
 # ---------------------------------------------------------------------------
 # DRAWING - GEOMETRIC SHAPES
-# ---------------------------------------------------------------------------
-# All shape functions share a consistent signature:
-#
-#   draw_<shape>(app, cx, cy, size, ...)
-#
-# cx, cy   — centre of the shape in terminal coordinates (col, row)
-# size     — shape-specific size parameter (see each function for details)
-# fill     — True = solid filled shape, False = outline only
-# fg       — character / border colour (COLOR_* constant)
-# bg       — background colour (COLOR_* constant)
-# fill_char— character used when fill=True  (default "█")
-# border_char — character used for the outline when fill=False
-#               (default "▓" for most shapes, shape-specific for some)
-#
-# Because terminal cells are roughly twice as tall as they are wide,
-# all shape functions apply an aspect-ratio correction automatically:
-# horizontal extents are multiplied by 2 so circles look circular,
-# triangles look triangular, etc.
 # ---------------------------------------------------------------------------
 
 def _shape_attr(app, fg, bg):
